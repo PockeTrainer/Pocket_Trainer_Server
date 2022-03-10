@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'workout',
     'accounts',
     'history',
+    'diet',
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',

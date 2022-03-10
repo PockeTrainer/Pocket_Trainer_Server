@@ -6,9 +6,11 @@ from rest_framework.response import Response
 
 from accounts.models import User, DayHistoryUserInfo, UserTestResult
 from workout.models import DayHistoryWorkout
+from diet.models import DayHistoryDiet
 #from .models import dayHistoryUserInfo, dayHistoryWorkout, workoutInfo
 from accounts.serializers import UserSerializer
 from workout.serializers import DayHistorySerializer
+from diet.serializers import DayHistoryDietSerializer
 
 from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -96,12 +98,17 @@ class DayHistoryView(APIView):
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
         DayHistory_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
+        #오늘 먹은 음식 기록
+        DayHistoryDiet_q = DayHistoryDiet.objects.filter(user_id=user, create_date=date)
+        DayHistoryDiet_Serializer = DayHistoryDietSerializer(DayHistoryDiet_q, many=True)
+
         return Response({
                 "code" : "200",
                 "message" : "기록 호출 완료",
                 "day_weight" : day_weight,
                 "day_bmi" : day_bmi,
-                "day_history_workout" : DayHistory_Serializer.data
+                "day_history_workout" : DayHistory_Serializer.data,
+                "day_history_diet" : DayHistoryDiet_Serializer.data
             })
         #except:
         #     return Response({"error":"해당일 기록이 존재하지 않습니다."}, status=400)

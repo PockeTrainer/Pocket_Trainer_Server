@@ -108,7 +108,7 @@ class CreateRoutineView(APIView):
                     if biceps_seq == 0:
                         workout = "easy_bar_curl"
                     elif biceps_seq == 1:
-                        workout = "barbell_curl"
+                        workout = "arm_curl"
                     elif biceps_seq == 2:
                         workout = "hammer_curl"
 
@@ -695,7 +695,7 @@ class SaveTestResultView(APIView):
         User_WorkoutInfo.target_kg = kg
         User_WorkoutInfo.save()
 
-        Workout_Info = WorkoutInfo.objects.get(workout_name="barbell_curl")
+        Workout_Info = WorkoutInfo.objects.get(workout_name="arm_curl")
         User_WorkoutInfo, created = UserWorkoutInfo.objects.update_or_create(user_id = user, workout_name = Workout_Info)
         User_WorkoutInfo.target_kg = kg
         User_WorkoutInfo.save()
@@ -778,9 +778,9 @@ class GetUserWorkoutInfo(APIView):
         is_first = False    #해당 운동 처음 하는지(무게 추천)
         try:
             user = User.objects.get(id=user_id)
-            workout = WorkoutInfo.objects.get(workout_name=workout)
+            Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
 
-            User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id=user, workout_name=workout)
+            User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id=user, workout_name=Workout_Info)
 
             #이전에 해당 운동 무게 측정x 상태
             if(User_WorkoutInfo.last_update_date == None) :
@@ -808,11 +808,11 @@ class ChangeUserWorkoutInfo(APIView):
     def put(self, request, workout, user_id):
         #try:
         user = User.objects.get(id=user_id)
-        workout = WorkoutInfo.objects.get(workout_name=workout)
-        User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id=user, workout_name=workout)
+        Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
+        User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id=user, workout_name=Workout_Info)
 
         today = datetime.now().date()
-        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, workout_name=workout, create_date=today)
+        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, workout_name=Workout_Info, create_date=today)
 
         if('target_kg' in request.data) :
             User_WorkoutInfo.target_kg = request.data['target_kg']
@@ -841,27 +841,66 @@ class ChangeUserWorkoutInfo(APIView):
 class WorkoutResultView(APIView):
     permission_classes = [AllowAny]
     def put(self, request, workout, user_id):
-        try:
-            user = User.objects.get(id=user_id)
-            workout = WorkoutInfo.objects.get(workout_name=workout)
+        # try:
+        user = User.objects.get(id=user_id)
+        Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
 
-            today = datetime.now().date()
-            DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=today, workout_name=workout)
-            DayHistory_Workout.workout_set = request.data['workout_set']
-            DayHistory_Workout.workout_time = request.data['workout_time']
+        today = datetime.now().date()
+        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=today, workout_name=Workout_Info)
+        DayHistory_Workout.workout_set = request.data['workout_set']
+        DayHistory_Workout.workout_time = request.data['workout_time']
 
-            #마지막 세트면 해당 운동 is_clear => True 
-            if (DayHistory_Workout.workout_set == '5') :
-                DayHistory_Workout.is_clear = True
+        User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)    
 
+        #마지막 세트면 
+        if (int(request.data['workout_set']) == 5) :
+            #해당 운동 is_clear => True 
+            DayHistory_Workout.is_clear = True
             DayHistory_Workout.save()
 
-            return Response({
-                        "code" : 200,
-                        "message" : "운동 기록 저장 완료",
-                })
-        except:
-            return Response({"error" : "운동 기록 저장 실패"}, status=400)
+            #삼두 운동이면 삼두 순서+1
+            if (workout in ['cable_push_down', 'lying_triceps_extension', 'dumbbell_kickback']):
+                User_WorkoutRoutine.triceps_seq = (User_WorkoutRoutine.triceps_seq+1) % 3
+            #이두 운동이면 이두 순서+1    
+            elif (workout in ['easy_bar_curl', 'arm_curl', 'hammer_curl']):
+                User_WorkoutRoutine.biceps_seq = (User_WorkoutRoutine.biceps_seq+1) % 3
+
+            today_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
+            cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_clear=True)
+            percentage = len(cleared_workout) / len(today_workout)
+
+            # 아직 오늘 루틴 갱신X  &  오늘 clear 운동 50% 이상 -> 최근 루틴 완료 날짜 갱신, 루틴 + 1
+            if (User_WorkoutRoutine.workout_routine == 0):
+                if (User_WorkoutRoutine.last_routine0_date != today 
+                    and User_WorkoutRoutine.last_routine1_date != today
+                    and User_WorkoutRoutine.last_routine2_date != today
+                    and percentage >= 0.5):
+                    User_WorkoutRoutine.last_routine0_date = today
+                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
+            elif (User_WorkoutRoutine.workout_routine == 1):
+                if (User_WorkoutRoutine.last_routine0_date != today 
+                    and User_WorkoutRoutine.last_routine1_date != today
+                    and User_WorkoutRoutine.last_routine2_date != today
+                    and percentage >= 0.5):
+                    User_WorkoutRoutine.last_routine1_date = today
+                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
+            elif (User_WorkoutRoutine.workout_routine == 2):
+                if (User_WorkoutRoutine.last_routine0_date != today 
+                    and User_WorkoutRoutine.last_routine1_date != today
+                    and User_WorkoutRoutine.last_routine2_date != today
+                    and percentage >= 0.5):
+                    User_WorkoutRoutine.last_routine2_date = today
+                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
+                    
+        #DayHistory_Workout.save()
+        User_WorkoutRoutine.save()
+
+        return Response({
+                    "code" : 200,
+                    "message" : "운동 기록 저장 완료",
+            })
+        # except:
+        #     return Response({"error" : "운동 기록 저장 실패"}, status=400)
 
 #운동측정 후 피드백 반영
 class WorkoutFeedbackView(APIView):
@@ -869,15 +908,40 @@ class WorkoutFeedbackView(APIView):
     def put(self, request, workout, user_id):
         try:
             user = User.objects.get(id=user_id)
-            workout = WorkoutInfo.objects.get(workout_name=workout)
+            Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
 
-            User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id=user, workout_name=workout)
+            User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id=user, workout_name=Workout_Info)
             User_WorkoutInfo.workout_feedback = request.data['feedback']
 
             #feedback에 따른 무게 수정
-            #if (workout == ""):
-            #elif ():
-            #else:
+            #덤벨
+            if (workout in ['one_arm_dumbbell_row', 'dumbbell_shoulder_press', 'side_lateral_raise', 'lying_triceps_extension', 'dumbbell_kickback', 'hammer_curl']):
+                # 가벼움
+                if (int(request.data['feedback']) == 1):
+                    User_WorkoutInfo.target_kg += 1
+                # 무거움
+                elif (int(request.data['feedback']) == 2):
+                    User_WorkoutInfo.target_kg -= 1       
+            #원형 추 사용
+            elif (workout in ['bench_press', 'incline_press', 'easy_bar_curl', 'squat', 'leg_press']):
+                # 가벼움
+                if (int(request.data['feedback']) == 1):
+                    User_WorkoutInfo.target_kg += 5
+                # 무거움
+                elif (int(request.data['feedback']) == 2):
+                    User_WorkoutInfo.target_kg -= 5      
+            #머신 사용 (단위: 파운드)
+            elif (workout in ['pec_dec_fly', 'lat_pull_dow', 'seated_row', 'reverse_peck_deck_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
+                    # 가벼움
+                if (int(request.data['feedback']) == 1):
+                    User_WorkoutInfo.target_kg += 5
+                # 무거움
+                elif (int(request.data['feedback']) == 2):
+                    User_WorkoutInfo.target_kg -= 5
+                        #머신 사용 (단위: 파운드)            
+            #그 외 무게 필요 없는 것들
+            elif (workout in ['crunch', 'seated_knees_up', 'plank']):
+                pass
 
             User_WorkoutInfo.save()
 

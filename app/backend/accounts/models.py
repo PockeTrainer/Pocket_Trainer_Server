@@ -24,6 +24,9 @@ class UserWorkoutRoutine(models.Model):
     workout_routine = models.IntegerField(null=True, blank=True)
     triceps_seq = models.IntegerField(null=True, blank=True)
     biceps_seq = models.IntegerField(null=True, blank=True)
+    last_routine0_date = models.DateField(null=True, blank=True)
+    last_routine1_date = models.DateField(null=True, blank=True)
+    last_routine2_date = models.DateField(null=True, blank=True)
 
     def __str__(self):
         return str(self.user_id);

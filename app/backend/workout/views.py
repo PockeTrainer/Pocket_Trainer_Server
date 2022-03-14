@@ -1,4 +1,5 @@
 
+from asyncio.windows_events import NULL
 from typing import AsyncGenerator
 from django.shortcuts import render
 #generics
@@ -762,11 +763,38 @@ class TodayRoutineView(APIView):
         #오늘의 루틴 기록
         today = datetime.now().date()
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
-        DayHistory_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
+        DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)    
+
+        try:
+            User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)
+            
+            # routine : 오늘 루틴 순서
+            # 오늘 운동 수행 x -> 오늘 루틴
+            if (User_WorkoutRoutine.last_routine0_date != today 
+                    and User_WorkoutRoutine.last_routine1_date != today
+                    and User_WorkoutRoutine.last_routine2_date != today):
+                routine = User_WorkoutRoutine.workout_routine
+            # 오늘 운동 수행 o -> -1 루틴
+            else:
+                routine = (User_WorkoutRoutine.workout_routine+2) % 3
+
+            # 루틴 생성 완료 상태
+            if routine == 0:
+                last_routine_date = User_WorkoutRoutine.last_routine0_date
+            elif routine == 1:
+                last_routine_date = User_WorkoutRoutine.last_routine1_date
+            elif routine == 2:
+                last_routine_date = User_WorkoutRoutine.last_routine2_date
+
+        # 아직 체력 평가 X 상태
+        except UserWorkoutRoutine.DoesNotExist:
+            last_routine_date = None
+
         return Response({
                     "code" : 200,
                     "message" : "오늘의 루틴 페이지 정보 호출 완료",
-                    "todayRoutine" : DayHistory_Serializer.data
+                    "todayRoutine" : DayHistoryWorkout_Serializer.data,
+                    "last_routine_date" : last_routine_date
                 })
 #3        except:
  #           return Response({"error":"오늘의 루틴 페이지 정보 호출 실패."}, status=400)
@@ -852,8 +880,8 @@ class WorkoutResultView(APIView):
 
         User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)    
 
-        #마지막 세트면 
-        if (int(request.data['workout_set']) == 5) :
+        # 아직 완료하지 않은 운동이고 해당 운동이 마지막 세트면 
+        if (not DayHistory_Workout.is_clear and int(request.data['workout_set']) == 5) :
             #해당 운동 is_clear => True 
             DayHistory_Workout.is_clear = True
             DayHistory_Workout.save()
@@ -891,7 +919,7 @@ class WorkoutResultView(APIView):
                     and percentage >= 0.5):
                     User_WorkoutRoutine.last_routine2_date = today
                     User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
-                    
+
         #DayHistory_Workout.save()
         User_WorkoutRoutine.save()
 

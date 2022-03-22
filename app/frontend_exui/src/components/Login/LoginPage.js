@@ -56,7 +56,6 @@ function LoginPage()  {
 
 
     return (
-    <meta http-equiv="Content-Security-Policy" content="upgrade-insecure-requests" >
     <div className="LoginPage">
         <div className="GNB">로그인</div>
 

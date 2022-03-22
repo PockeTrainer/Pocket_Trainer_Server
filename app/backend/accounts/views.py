@@ -70,22 +70,27 @@ class BeginningUserInfoView(APIView):
     #permission_classes = [IsAuthenticated]
     permission_classes = [AllowAny]
     def post(self, request, user_id):
-        user = User.objects.get(id=user_id)
-        user.height = request.data['height']
-        user.weight = request.data['weight']
-        user.save()
+        try:
+            user = User.objects.get(id=user_id)
+            user.height = request.data['height']
+            user.weight = request.data['weight']
+            user.activation_level = request.data['activation_level']
+            user.target_weight = request.data['target_weight']
+            user.save()
 
-        today = datetime.now().date()
-        bmi = round(float(request.data['weight']) / ((float(request.data['height'])/100)*(float(request.data['height'])/100)), 1)
-        user_info, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=today)
-        user_info.weight = request.data['weight']
-        user_info.bmi = bmi     
-        user_info.save()
+            today = datetime.now().date()
+            bmi = round(float(request.data['weight']) / ((float(request.data['height'])/100)*(float(request.data['height'])/100)), 1)
+            user_info, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=today)
+            user_info.weight = request.data['weight']
+            user_info.bmi = bmi     
+            user_info.save()
 
-        return Response({
-                "code" : 200,
-                "message": "유저 초기 키, 몸무게 설정 완료",
-            })
+            return Response({
+                    "code" : 200,
+                    "message": "유저 초기 키, 몸무게, 활동량, 목표체중 설정 완료",
+                })
+        except:
+            return Response({"error":"모두 입력해주세요"}, status=400)
 
 
 class DayUserInfoView(APIView):
@@ -93,22 +98,25 @@ class DayUserInfoView(APIView):
     #permission_classes = [IsAuthenticated]
     permission_classes = [AllowAny]
     def post(self, request, date, user_id):
-        user = User.objects.get(id=user_id)
-        height = user.height
-        user.weight = request.data['weight']    #유저 weight 변경
+        try:
+            user = User.objects.get(id=user_id)
+            height = user.height
+            user.weight = request.data['weight']    #유저 weight 변경
 
-        bmi = round(float(request.data['weight']) / ((height/100)*(height/100)), 1)
-        user_info, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=date)
-        user_info.weight = request.data['weight']
-        user_info.bmi = bmi
-        
-        user_info.save()
-        user.save()
+            bmi = round(float(request.data['weight']) / ((height/100)*(height/100)), 1)
+            user_info, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=date)
+            user_info.weight = request.data['weight']
+            user_info.bmi = bmi
+            
+            user_info.save()
+            user.save()
 
-        return Response({
-                "code" : 200,
-                "message": "몸무게, BMI 정보 저장 완료",
-            })
+            return Response({
+                    "code" : 200,
+                    "message": "몸무게, BMI 정보 저장 완료",
+                })
+        except:
+            return Response({"error":"모두 입력해주세요"}, status=400)
 
 
 # class TestResultAPIView(APIView):

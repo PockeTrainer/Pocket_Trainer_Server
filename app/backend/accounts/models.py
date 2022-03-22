@@ -9,6 +9,8 @@ class User(AbstractUser):
     birth = models.DateField(null=True, blank=True)
     height = models.FloatField(null=True, blank=True)
     weight = models.FloatField(null=True, blank=True)
+    activation_level = models.IntegerField(null=True, blank=True)
+    target_weight = models.IntegerField(null=True, blank=True)
 
     first_name = None
     last_name = None
@@ -72,6 +74,8 @@ class DayHistoryUserInfo(models.Model):
                                 related_name='day_history_user_info')
     weight = models.FloatField(null=True, blank=True)
     bmi = models.FloatField(null=True, blank=True)
+    target_kcal = models.IntegerField(null=True, blank=True)
+
     create_date = models.DateField()
 
     def __str__(self):

@@ -78,7 +78,7 @@ class CreateRoutineView(APIView):
                     User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
                     created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_cnt
+                    created_DayHistory_Workout.target_cnt = User_WorkoutInfo.target_cnt
                     created_DayHistory_Workout.save()
 
                 elif (todayRoutine == 1) :
@@ -624,7 +624,7 @@ class SaveTestResultView(APIView):
         #등급으로 각 운동별 추천 무게 설정
         kg = 0
         cnt = 0
-        time = "00:00:00"
+        time = "00:01:00"
 
         # 가슴 (chest)
         Workout_Info = WorkoutInfo.objects.get(workout_name="bench_press")
@@ -709,12 +709,12 @@ class SaveTestResultView(APIView):
         # 복부 (stomach)
         Workout_Info = WorkoutInfo.objects.get(workout_name="crunch")
         User_WorkoutInfo, created = UserWorkoutInfo.objects.update_or_create(user_id = user, workout_name = Workout_Info)
-        User_WorkoutInfo.target_cnt = cnt
+        User_WorkoutInfo.target_cnt = 15
         User_WorkoutInfo.save()          
 
         Workout_Info = WorkoutInfo.objects.get(workout_name="seated_knees_up")
         User_WorkoutInfo, created = UserWorkoutInfo.objects.update_or_create(user_id = user, workout_name = Workout_Info)
-        User_WorkoutInfo.target_cnt = cnt
+        User_WorkoutInfo.target_cnt = 10
         User_WorkoutInfo.save() 
 
         Workout_Info = WorkoutInfo.objects.get(workout_name="plank")
@@ -960,16 +960,28 @@ class WorkoutFeedbackView(APIView):
                     User_WorkoutInfo.target_kg -= 5      
             #머신 사용 (단위: 파운드)
             elif (workout in ['pec_dec_fly', 'lat_pull_dow', 'seated_row', 'reverse_peck_deck_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
-                    # 가벼움
+                # 가벼움
                 if (int(request.data['feedback']) == 1):
                     User_WorkoutInfo.target_kg += 5
                 # 무거움
                 elif (int(request.data['feedback']) == 2):
-                    User_WorkoutInfo.target_kg -= 5
-                        #머신 사용 (단위: 파운드)            
-            #그 외 무게 필요 없는 것들
-            elif (workout in ['crunch', 'seated_knees_up', 'plank']):
-                pass
+                    User_WorkoutInfo.target_kg -= 5          
+            #횟수 조정
+            elif (workout in ['crunch', 'seated_knees_up']):
+                # 쉬움
+                if (int(request.data['feedback']) == 1):
+                    User_WorkoutInfo.target_cnt += 2
+                # 어려움
+                elif (int(request.data['feedback']) == 2):
+                    User_WorkoutInfo.target_cnt -= 2  
+            #시간 조정
+            elif (workout in ['plank']):
+                # 쉬움
+                if (int(request.data['feedback']) == 1):
+                    User_WorkoutInfo.target_time += "00:00:10" 
+                # 어려움
+                elif (int(request.data['feedback']) == 2):
+                    User_WorkoutInfo.target_time -= "00:00:10"  
 
             User_WorkoutInfo.save()
 

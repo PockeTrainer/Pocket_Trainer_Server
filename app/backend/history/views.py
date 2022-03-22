@@ -27,24 +27,24 @@ class MainPageInfoView(APIView):
 
         #최근 운동 평가 기록
         UserTest_Result = UserTestResult.objects.filter(user_id=user).last()
-        if UserTest_Result == None:
-            return Response({"error":"mainpage정보(운동) 호출 실패, 체력평가 결과 필요"}, status=400) 
 
         # 유저정보(체중, 키), 체력평가 여부 확인
-        # modal_seq - 0: 둘다x, 1:유저정보o, 2:유저정보o, 체력평가o
         weight = user.weight
         height = user.height
         
-        modal_seq = 0
-        if weight and height:
-            modal_seq = 1
-        if UserTest_Result != None:
-            modal_seq = 2
+        if not weight or not height:
+            return Response({"error":"mainpage정보 호출 실패, 유저 정보 필요"}, status=400)
+
+        if UserTest_Result == None:
+            return Response({"error":"mainpage정보(운동) 호출 실패, 체력평가 결과 필요"}, status=400) 
 
         #오늘의 루틴 기록
         today = datetime.datetime.now().date()
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
+
+        if len(DayHistory_Workout_q) == 0:
+            return Response({"error":"mainpage정보 호출 실패, 오늘의 루틴 생성 필요"}, status=400)
 
         #운동 성취도(clear 운동 비율)
         cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_clear=True)
@@ -53,7 +53,11 @@ class MainPageInfoView(APIView):
         #오늘 먹은 음식 기록
         DayHistoryDiet_q = DayHistoryDiet.objects.filter(user_id=user, create_date=today)
         DayHistoryDiet_Serializer = DayHistoryDietSerializer(DayHistoryDiet_q, many=True)
-        
+
+        #오늘 섭취해야 하는 칼로리 (목표 칼로리)
+        DayHistory_UserInfo= DayHistoryUserInfo.objects.get(user_id=user, create_date=today)
+        target_kcal = DayHistory_UserInfo.target_kcal
+
         #오늘 섭취한 총 칼로리
         today_kcal = 0
         for i in range(len(DayHistoryDiet_q)):
@@ -97,13 +101,13 @@ class MainPageInfoView(APIView):
         return Response({
             "code" : 200,
             "message" : "mainpage 정보 확인 완료",
-            "modal_seq" : modal_seq,
             "todayRoutine" : DayHistoryWorkout_Serializer.data,
             "clear_workout_percentage" : percentage,
             "day_history_diet" : DayHistoryDiet_Serializer.data,
+            "target_kcal" : target_kcal,
             "today_kcal" : today_kcal,
             "diff_kcal" : diff_kcal,
-            "diet_graph" : {
+            "nutrient_graph" : {
                 "carbohydrate_list" : carbohydrate_list,        
                 "protein_list" : protein_list,
                 "province_list" : province_list
@@ -148,13 +152,64 @@ class DayHistoryView(APIView):
             day_weight = DayHistory_UserInfo[0].weight
             day_bmi = DayHistory_UserInfo[0].bmi
 
-        #오늘의 루틴 기록
+        #해당일 운동 기록 기록
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
-        #오늘 먹은 음식 기록
+        #해당일 먹은 음식 기록
         DayHistoryDiet_q = DayHistoryDiet.objects.filter(user_id=user, create_date=date)
         DayHistoryDiet_Serializer = DayHistoryDietSerializer(DayHistoryDiet_q, many=True)
+
+        # # 유저정보(체중, 키) 입력 여부 확인
+        # weight = user.weight
+        # height = user.height
+        # if not weight or not height:
+        #     return Response({"error":"mainpage정보 호출 실패, 유저 정보 필요"}, status=400) 
+
+        #해달일 섭취해야 하는 칼로리 (목표 칼로리), 탄단지 g
+        DayHistory_UserInfo = DayHistoryUserInfo.objects.filter(user_id=user, create_date=date)
+            
+        if (len(DayHistory_UserInfo) == 0):
+            return Response({"error":"목표 칼로리 설정을 위해 먼저 해당 날짜 몸무게를 입력해주세요"}, status=400) 
+        
+        #해당일 목표 칼로리 설정 되어 있지 않았다면 생성
+        if (DayHistory_UserInfo[0].target_kcal == None):
+            format = '%Y-%m-%d'
+            date_ = datetime.datetime.strptime(date, format)
+            age = date_.year - user.birth.year
+            #기초 대사량
+            basic_kcal = 0
+            if ('man' in user.gender):
+                basic_kcal = 66 + (13.7*DayHistory_UserInfo[0].weight) + (5*user.height) - (6.8*age)
+            elif ('woman' in user.gender):
+                basic_kcal = 655 + (9.6*DayHistory_UserInfo[0].weight) + (1.7*user.height) - (4.7*age)
+            
+            #유지 칼로리
+            w1_list = [1.2, 1.375, 1.55, 1.725, 1.9]  #가중치
+            maintain_kcal = basic_kcal * w1_list[user.activation_level]
+            
+            #목표 칼로리
+            w2_list = [0.8, 1.0, 1.2]
+            target_kcal = maintain_kcal * w2_list[user.target_weight]
+            
+            DayHistory_UserInfo[0].target_kcal = int(target_kcal)
+            DayHistory_UserInfo[0].save()
+
+        target_kcal = DayHistory_UserInfo[0].target_kcal
+        target_carbohydrate = (target_kcal // 10 * 5) // 4
+        target_protein = (target_kcal // 10 * 3) // 4
+        target_province = (target_kcal // 10 * 2) // 9
+
+        #해당일 섭취한 총 칼로리, 탄단지g
+        total_kcal = 0
+        carbohydrate = 0
+        protein = 0
+        province = 0
+        for i in range(len(DayHistoryDiet_q)):
+            total_kcal += DayHistoryDiet_q[i].food_kcal
+            carbohydrate += DayHistoryDiet_q[i].carbohydrate
+            protein += DayHistoryDiet_q[i].protein
+            province += DayHistoryDiet_q[i].province
 
         return Response({
                 "code" : "200",
@@ -162,7 +217,18 @@ class DayHistoryView(APIView):
                 "day_weight" : day_weight,
                 "day_bmi" : day_bmi,
                 "day_history_workout" : DayHistoryWorkout_Serializer.data,
-                "day_history_diet" : DayHistoryDiet_Serializer.data
+                "day_history_diet" : DayHistoryDiet_Serializer.data,
+                "nutrient" : {
+                    "target_kcal" : target_kcal,
+                    "target_carbohydrate" : target_carbohydrate,
+                    "target_protein" : target_protein,
+                    "target_province" : target_province,
+
+                    "total_kcal" : total_kcal,
+                    "carbohydrate" : carbohydrate,       
+                    "protein" : protein,
+                    "province" : province 
+                }
             })
         #except:
         #     return Response({"error":"해당일 기록이 존재하지 않습니다."}, status=400)

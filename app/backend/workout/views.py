@@ -833,14 +833,13 @@ class GetUserWorkoutInfo(APIView):
 #운동측정 전 무게 or 갯수 or 시간 조절 
 class ChangeUserWorkoutInfo(APIView):
     permission_classes = [AllowAny]
-    def put(self, request, workout, user_id):
+    def put(self, request, workout, date, user_id):
         #try:
         user = User.objects.get(id=user_id)
         Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
         User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id=user, workout_name=Workout_Info)
 
-        today = datetime.now().date()
-        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, workout_name=Workout_Info, create_date=today)
+        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, workout_name=Workout_Info, create_date=date)
 
         if('target_kg' in request.data) :
             User_WorkoutInfo.target_kg = request.data['target_kg']
@@ -853,7 +852,7 @@ class ChangeUserWorkoutInfo(APIView):
             DayHistory_Workout.target_time = request.data['target_time']
 
         User_WorkoutInfo.workout_feedback = 0
-        User_WorkoutInfo.last_update_date = today
+        User_WorkoutInfo.last_update_date = date
 
         User_WorkoutInfo.save()
         DayHistory_Workout.save()
@@ -868,13 +867,12 @@ class ChangeUserWorkoutInfo(APIView):
 #운동측정 기록 update
 class WorkoutResultView(APIView):
     permission_classes = [AllowAny]
-    def put(self, request, workout, user_id):
+    def put(self, request, workout, date, user_id):
         # try:
         user = User.objects.get(id=user_id)
         Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
 
-        today = datetime.now().date()
-        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=today, workout_name=Workout_Info)
+        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
         DayHistory_Workout.workout_set = request.data['workout_set']
         DayHistory_Workout.workout_time = request.data['workout_time']
 
@@ -893,31 +891,31 @@ class WorkoutResultView(APIView):
             elif (workout in ['easy_bar_curl', 'arm_curl', 'hammer_curl']):
                 User_WorkoutRoutine.biceps_seq = (User_WorkoutRoutine.biceps_seq+1) % 3
 
-            today_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
-            cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_clear=True)
+            today_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
+            cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date, is_clear=True)
             percentage = len(cleared_workout) / len(today_workout)
 
             # 아직 오늘 루틴 갱신X  &  오늘 clear 운동 50% 이상 -> 최근 루틴 완료 날짜 갱신, 루틴 + 1
             if (User_WorkoutRoutine.workout_routine == 0):
-                if (User_WorkoutRoutine.last_routine0_date != today 
-                    and User_WorkoutRoutine.last_routine1_date != today
-                    and User_WorkoutRoutine.last_routine2_date != today
+                if (User_WorkoutRoutine.last_routine0_date != date 
+                    and User_WorkoutRoutine.last_routine1_date != date
+                    and User_WorkoutRoutine.last_routine2_date != date
                     and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine0_date = today
+                    User_WorkoutRoutine.last_routine0_date = date
                     User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
             elif (User_WorkoutRoutine.workout_routine == 1):
-                if (User_WorkoutRoutine.last_routine0_date != today 
-                    and User_WorkoutRoutine.last_routine1_date != today
-                    and User_WorkoutRoutine.last_routine2_date != today
+                if (User_WorkoutRoutine.last_routine0_date != date 
+                    and User_WorkoutRoutine.last_routine1_date != date
+                    and User_WorkoutRoutine.last_routine2_date != date
                     and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine1_date = today
+                    User_WorkoutRoutine.last_routine1_date = date
                     User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
             elif (User_WorkoutRoutine.workout_routine == 2):
-                if (User_WorkoutRoutine.last_routine0_date != today 
-                    and User_WorkoutRoutine.last_routine1_date != today
-                    and User_WorkoutRoutine.last_routine2_date != today
+                if (User_WorkoutRoutine.last_routine0_date != date 
+                    and User_WorkoutRoutine.last_routine1_date != date
+                    and User_WorkoutRoutine.last_routine2_date != date
                     and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine2_date = today
+                    User_WorkoutRoutine.last_routine2_date = date
                     User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
 
         #DayHistory_Workout.save()
@@ -949,7 +947,10 @@ class WorkoutFeedbackView(APIView):
                     User_WorkoutInfo.target_kg += 1
                 # 무거움
                 elif (int(request.data['feedback']) == 2):
-                    User_WorkoutInfo.target_kg -= 1       
+                    if (User_WorkoutInfo.target_kg - 1) > 0:
+                        User_WorkoutInfo.target_kg -= 1       
+                    else:
+                        Response({"error" : "feedback 반영 실패, 현재 최소 중량"}, status=400)
             #원형 추 사용
             elif (workout in ['bench_press', 'incline_press', 'easy_bar_curl', 'squat', 'leg_press']):
                 # 가벼움
@@ -957,7 +958,10 @@ class WorkoutFeedbackView(APIView):
                     User_WorkoutInfo.target_kg += 5
                 # 무거움
                 elif (int(request.data['feedback']) == 2):
-                    User_WorkoutInfo.target_kg -= 5      
+                    if (User_WorkoutInfo.target_kg - 5) > 0:
+                        User_WorkoutInfo.target_kg -= 5       
+                    else:
+                        Response({"error" : "feedback 반영 실패, 현재 최소 중량"}, status=400)     
             #머신 사용 (단위: 파운드)
             elif (workout in ['pec_dec_fly', 'lat_pull_dow', 'seated_row', 'reverse_peck_deck_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
                 # 가벼움
@@ -965,7 +969,10 @@ class WorkoutFeedbackView(APIView):
                     User_WorkoutInfo.target_kg += 5
                 # 무거움
                 elif (int(request.data['feedback']) == 2):
-                    User_WorkoutInfo.target_kg -= 5          
+                    if (User_WorkoutInfo.target_kg - 1) > 0:
+                        User_WorkoutInfo.target_kg -= 1       
+                    else:
+                        Response({"error" : "feedback 반영 실패, 현재 최소 중량(파운드)"}, status=400)          
             #횟수 조정
             elif (workout in ['crunch', 'seated_knees_up']):
                 # 쉬움
@@ -973,7 +980,10 @@ class WorkoutFeedbackView(APIView):
                     User_WorkoutInfo.target_cnt += 2
                 # 어려움
                 elif (int(request.data['feedback']) == 2):
-                    User_WorkoutInfo.target_cnt -= 2  
+                    if (User_WorkoutInfo.target_cnt - 2) > 0:
+                        User_WorkoutInfo.target_cnt -= 2       
+                    else:
+                        Response({"error" : "feedback 반영 실패, 현재 최소 갯수"}, status=400)  
             #시간 조정
             elif (workout in ['plank']):
                 # 쉬움
@@ -981,7 +991,10 @@ class WorkoutFeedbackView(APIView):
                     User_WorkoutInfo.target_time += "00:00:10" 
                 # 어려움
                 elif (int(request.data['feedback']) == 2):
-                    User_WorkoutInfo.target_time -= "00:00:10"  
+                    if (User_WorkoutInfo.target_time - "00:00:10" ) > 0:
+                        User_WorkoutInfo.target_time -= "00:00:10"       
+                    else:
+                        Response({"error" : "feedback 반영 실패, 현재 최소 시간"}, status=400)                      
 
             User_WorkoutInfo.save()
 

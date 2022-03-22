@@ -864,6 +864,50 @@ class ChangeUserWorkoutInfo(APIView):
         #except:
         #    return Response({"error" : "유저 운동정보 변경 실패"}, status=400)
 
+#운동 시작 시간 저장
+class SaveStartDateTimeView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, workout, date, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            Workout_Info = WorkoutInfo.objects.get(workout_name=workout)     
+
+            #오늘의 루틴 기록
+            DayHistory_Workout_q = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
+
+            today = datetime.now()
+            DayHistory_Workout_q.start_datetime = today
+            DayHistory_Workout_q.save()
+
+            return Response({
+                    "code" : 200,
+                    "message" : "운동 시작 시간 저장 완료",
+                })
+        except:
+            return Response({"error" : "운동 시작 시간 저장 실패"}, status=400)
+
+#운동 종료 시간 저장
+class SaveEndDateTimetView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, workout, date, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            Workout_Info = WorkoutInfo.objects.get(workout_name=workout)     
+
+            #오늘의 루틴 기록
+            DayHistory_Workout_q = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
+
+            today = datetime.now()
+            DayHistory_Workout_q.end_datetime = today
+            DayHistory_Workout_q.save()
+
+            return Response({
+                    "code" : 200,
+                    "message" : "운동 종료 시간 저장 완료",
+                })  
+        except:
+            return Response({"error" : "운동 종료 시간 저장 실패"}, status=400)
+            
 #운동측정 기록 update
 class WorkoutResultView(APIView):
     permission_classes = [AllowAny]
@@ -950,7 +994,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 1) > 0:
                         User_WorkoutInfo.target_kg -= 1       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소 중량"}, status=400)
+                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)
             #원형 추 사용
             elif (workout in ['bench_press', 'incline_press', 'easy_bar_curl', 'squat', 'leg_press']):
                 # 가벼움
@@ -961,7 +1005,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 5) > 0:
                         User_WorkoutInfo.target_kg -= 5       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소 중량"}, status=400)     
+                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)     
             #머신 사용 (단위: 파운드)
             elif (workout in ['pec_dec_fly', 'lat_pull_dow', 'seated_row', 'reverse_peck_deck_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
                 # 가벼움
@@ -972,7 +1016,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 1) > 0:
                         User_WorkoutInfo.target_kg -= 1       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소 중량(파운드)"}, status=400)          
+                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)          
             #횟수 조정
             elif (workout in ['crunch', 'seated_knees_up']):
                 # 쉬움
@@ -983,7 +1027,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_cnt - 2) > 0:
                         User_WorkoutInfo.target_cnt -= 2       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소 갯수"}, status=400)  
+                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)  
             #시간 조정
             elif (workout in ['plank']):
                 # 쉬움
@@ -994,7 +1038,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_time - "00:00:10" ) > 0:
                         User_WorkoutInfo.target_time -= "00:00:10"       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소 시간"}, status=400)                      
+                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)                      
 
             User_WorkoutInfo.save()
 

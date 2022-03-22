@@ -23,11 +23,10 @@ class DayHistoryWorkout(models.Model):
     target_kg = models.IntegerField(null=True, blank=True)
     target_cnt = models.IntegerField(null=True, blank=True)
     target_time = models.TimeField(null=True, blank=True)
-    #target_set = models.IntegerField(null=True, blank=True)
-    #target_cnt = models.IntegerField(null=True, blank=True)
     workout_set = models.IntegerField(null=True, blank=True)
-    #workout_cnt = models.IntegerField(null=True, blank=True)
     workout_time = models.TimeField(null=True, blank=True)
+    start_datetime = models.DateTimeField(null=True, blank=True)
+    end_datetime = models.DateTimeField(null=True, blank=True)
     is_clear = models.BooleanField(default=False)
 
     def __str__(self):

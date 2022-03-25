@@ -134,8 +134,59 @@ class MainPageInfoView(APIView):
         #except:
         #    return Response({"error":"mainpage 정보 호출 실패."}, status=400)
 
+#월 기록 호출
+class MonthHistoryView(APIView):
+    #authentication_classes = [TokenAuthentication]
+    #permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    def get(self, request, year_month, user_id):
+        #try:
+        user = User.objects.get(id=user_id)
 
-#기록 호출
+        #섭취한 탄,단,지 list (6일)
+        bmi_list = []        
+        is_clear_list = []
+        
+        for i in range(1, 31+1):
+            year_month_day = year_month+'-'+str(i)
+            format = '%Y-%m-%d'
+            #해당월 있는 일수 까지만 
+            try:
+                target_day = datetime.datetime.strptime(year_month_day, format)
+            except:
+                break
+
+            target_DayHistoryUserInfo = DayHistoryUserInfo.objects.filter(user_id=user, create_date=target_day)
+            
+            #해당일 기록 없다면 bmi_list에 -1 추가
+            if len(target_DayHistoryUserInfo) == 0 or target_DayHistoryUserInfo[0].bmi == None:
+                bmi_list.append(-1)
+            else:    
+                bmi_list.append(target_DayHistoryUserInfo[0].bmi)
+            
+            target_day_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=target_day)
+            cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=target_day, is_clear=True)
+            # 운동루틴 생성하지 않은 날 -1 추가
+            if len(target_day_workout) == 0:
+                is_clear_list.append(-1)
+                continue
+            percentage = len(cleared_workout) / len(target_day_workout)
+            #운동 clear한 날(50%이상 수행)은 True, 아닌 날은 False 추가
+            if percentage >= 0.5:
+                is_clear_list.append(True)
+            else:
+                is_clear_list.append(False)
+
+
+        return Response({
+                "code" : "200",
+                "message" : "월 기록 호출 완료",
+                "bmi_list" : bmi_list,        
+                "is_clear_list" : is_clear_list
+            })
+
+
+#일 기록 호출
 class DayHistoryView(APIView):
     #authentication_classes = [TokenAuthentication]
     #permission_classes = [IsAuthenticated]
@@ -143,9 +194,18 @@ class DayHistoryView(APIView):
     def get(self, request, date, user_id):
         #try:
         user = User.objects.get(id=user_id)
+
+        # 유저정보(체중, 키), 체력평가 여부 확인
+        weight = user.weight
+        height = user.height
+        
+        if not weight or not height or user.activation_level not in [0,1,2,3,4] or user.target_weight not in [0,1,2]:
+            return Response({"error":"mainpage정보 호출 실패, 유저 정보 필요"}, status=400)
+
         DayHistory_UserInfo = DayHistoryUserInfo.objects.filter(user_id=user, create_date = date)
 
-        if len(DayHistory_UserInfo) == 0:
+        #해당일 유저 정보 없거나, 무게 정보 없다면 무게 표시 x
+        if len(DayHistory_UserInfo)==0 or DayHistory_UserInfo[0].weight == None:
             day_weight = None
             day_bmi = None
         else:    
@@ -159,12 +219,6 @@ class DayHistoryView(APIView):
         #해당일 먹은 음식 기록
         DayHistoryDiet_q = DayHistoryDiet.objects.filter(user_id=user, create_date=date)
         DayHistoryDiet_Serializer = DayHistoryDietSerializer(DayHistoryDiet_q, many=True)
-
-        # # 유저정보(체중, 키) 입력 여부 확인
-        # weight = user.weight
-        # height = user.height
-        # if not weight or not height:
-        #     return Response({"error":"mainpage정보 호출 실패, 유저 정보 필요"}, status=400) 
 
         #해달일 섭취해야 하는 칼로리 (목표 칼로리), 탄단지 g
         DayHistory_UserInfo, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=date)
@@ -210,7 +264,7 @@ class DayHistoryView(APIView):
 
         return Response({
                 "code" : "200",
-                "message" : "기록 호출 완료",
+                "message" : "일 기록 호출 완료",
                 "day_weight" : day_weight,
                 "day_bmi" : day_bmi,
                 "day_history_workout" : DayHistoryWorkout_Serializer.data,

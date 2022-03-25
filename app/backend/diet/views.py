@@ -29,7 +29,7 @@ class CreateTargetKcalView(APIView):
         #유저정보(체중, 키) 입력 여부 확인
         weight = user.weight
         height = user.height
-        if not weight or not height:
+        if not weight or not height or user.activation_level not in [0,1,2,3,4] or user.target_weight not in [0,1,2]:
             return Response({"error":"mainpage정보 호출 실패, 유저 정보 필요"}, status=400) 
 
         DayHistory_UserInfo, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=today)
@@ -37,8 +37,8 @@ class CreateTargetKcalView(APIView):
         #DayHistory_UserInfo 생성했을 경우
         if created:
             bmi = round(float(user.weight) / ((height/100)*(height/100)), 1)
-            DayHistory_UserInfo.weight = user.weight
-            DayHistory_UserInfo.bmi = bmi
+            # DayHistory_UserInfo.weight = user.weight
+            # DayHistory_UserInfo.bmi = bmi
             age = today.year - user.birth.year
             #기초 대사량
             basic_kcal = 0

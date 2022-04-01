@@ -151,3 +151,16 @@ class DietView(APIView):
                 "code" : "200",
                 "message" : "먹은 음식 추가 완료"
             })
+
+    def delete(self, request, date, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+            DayHistory_Diet = DayHistoryDiet.objects.get(user_id=user, create_date=date, food_name=request.data['food_name'], food_g=request.data['food_g'])
+            DayHistory_Diet.delete()
+
+            return Response({
+                    "code" : "200",
+                    "message" : "먹은 음식 삭제 완료"
+                })
+        except:
+            return Response({"error":"기록 삭제 실패"}, status=400)

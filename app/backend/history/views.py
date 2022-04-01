@@ -5,7 +5,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from accounts.models import User, DayHistoryUserInfo, UserTestResult
-from workout.models import DayHistoryWorkout
+from workout.models import DayHistoryWorkout, WorkoutInfo
 from diet.models import DayHistoryDiet
 #from .models import dayHistoryUserInfo, dayHistoryWorkout, workoutInfo
 from accounts.serializers import UserSerializer
@@ -16,6 +16,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 import datetime
+from dateutil.relativedelta import *
 
 #mainpage 정보 호출
 class MainPageInfoView(APIView):
@@ -49,6 +50,27 @@ class MainPageInfoView(APIView):
         #운동 성취도(clear 운동 비율)
         cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_clear=True)
         percentage = int(len(cleared_workout) / len(DayHistory_Workout_q) * 100)
+
+        #운동 그래프 (8개월간 기록-중량,갯수,시간)- default 'bench_press'
+        last_8months_lst = []   #지난 8개월
+        clearworkout_target_avg_lst= []
+        Workout_Info = WorkoutInfo.objects.get(workout_name="bench_press")
+        #최근 8개월만 표시(역순)
+        for i in range(8-1, -1, -1):
+            target_date = today+relativedelta(months=-i)
+            #지난 8개월 저장 ("2021_09" ~ "2022_04")
+            last_8months_lst.append(str(target_date.year)+'_'+str(target_date.month))
+            
+            DayHistory_Workout = DayHistoryWorkout.objects.filter(user_id=user, workout_name=Workout_Info, create_date__month=target_date.month, create_date__year=target_date.year, is_clear=True).order_by('-create_date')
+            
+            #해당월 기록 없으면 -1 추가
+            if len(DayHistory_Workout) == 0:
+                clearworkout_target_avg_lst.append(-1)
+            else:
+                month_target_sum = 0
+                for j in range(len(DayHistory_Workout)):
+                    month_target_sum += DayHistory_Workout[j].target_kg
+                clearworkout_target_avg_lst.append(month_target_sum//len(DayHistory_Workout))
 
         #오늘 먹은 음식 기록
         DayHistoryDiet_q = DayHistoryDiet.objects.filter(user_id=user, create_date=today)
@@ -107,32 +129,79 @@ class MainPageInfoView(APIView):
             "target_kcal" : target_kcal,
             "today_kcal" : today_kcal,
             "diff_kcal" : diff_kcal,
+            "workout_graph" : {
+                "last_8months_lst" : last_8months_lst,
+                "clearworkout_target_avg_lst" : clearworkout_target_avg_lst
+            },
             "nutrient_graph" : {
                 "carbohydrate_list" : carbohydrate_list,        
                 "protein_list" : protein_list,
                 "province_list" : province_list
-            }     
-            # "testResult" : {
-            #     "upperbody_strength" : upperbody_strength,   
-            #     "stomach_strength" : stomach_strength,        
-            #     "lowerbody_strength" : lowerbody_strength,
-            #     "date" : date   
-            # },
-                #"changeGraph" : {
-                #    "start_month" : start_month,    
-                #    "count" : count                 
-                #}
-
-                #"today_kcal" : today_kcal
-                # "dietGraph" : {
-                #     "carbohydrate" : carbohydrate,    ]
-                #     "protein", protein,                80]
-                #     "province", province              
-                # }
-                
+            }   
         })
         #except:
         #    return Response({"error":"mainpage 정보 호출 실패."}, status=400)
+
+
+#운동 그래프 정보 호출
+class WorkoutGraphView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, workout, user_id):
+        #try:
+        today = datetime.datetime.now().date()
+
+        user = User.objects.get(id=user_id)
+        #운동 그래프 (8개월간 기록-중량,갯수,시간)- default 'bench_press'
+        last_8months_lst = []   #지난 8개월
+        clearworkout_target_avg_lst= []
+        Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
+        #최근 8개월만 표시(역순)
+        for i in range(8-1, -1, -1):
+            target_date = today+relativedelta(months=-i)
+            #지난 8개월 저장 ("2021_09" ~ "2022_04")
+            last_8months_lst.append(str(target_date.year)+'_'+str(target_date.month))
+            
+            DayHistory_Workout = DayHistoryWorkout.objects.filter(user_id=user, workout_name=Workout_Info, create_date__month=target_date.month, create_date__year=target_date.year, is_clear=True).order_by('-create_date')
+            
+            #해당월 기록 없으면 -1 추가
+            if len(DayHistory_Workout) == 0:
+                clearworkout_target_avg_lst.append(-1)
+            else:
+                month_target_sum = 0
+                #끝마친(is_clear==True) 운동만 평균
+                for j in range(len(DayHistory_Workout)):
+                    #target 종류에 따라
+                    #횟수 
+                    if (workout in ['crunch', 'seated_knees_up']):
+                        month_target_sum += DayHistory_Workout[j].target_cnt
+                    #시간 
+                    elif (workout in ['plank']):
+                        time = DayHistory_Workout[j].target_time
+                        time = datetime.timedelta(hours=time.hour,minutes=time.minute,seconds=time.second)
+                        seconds = time.total_seconds()
+                        month_target_sum += seconds
+                        
+                    #중량 
+                    else:
+                        month_target_sum += DayHistory_Workout[j].target_kg
+
+                #target 종류에 따라
+                #시간
+                if (workout in ['plank']):
+                    avg_time = datetime.timedelta(seconds=month_target_sum//len(DayHistory_Workout))
+                    clearworkout_target_avg_lst.append(str(avg_time))
+                #횟수, 중량 
+                else:
+                    clearworkout_target_avg_lst.append(month_target_sum//len(DayHistory_Workout))
+        
+        return Response({
+                "code" : "200",
+                "message" : "운동 그래프 정보 호출 완료",
+                "workout_graph" : {
+                    "last_8months_lst" : last_8months_lst,
+                    "clearworkout_target_avg_lst" : clearworkout_target_avg_lst
+                },
+            })
 
 #월 기록 호출
 class MonthHistoryView(APIView):

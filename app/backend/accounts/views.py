@@ -1,4 +1,6 @@
+from cgitb import html
 from django.contrib.auth.models import Permission
+from django.shortcuts import redirect
 
 from rest_framework import status
 from rest_framework.views import APIView
@@ -6,6 +8,7 @@ from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
 from .models import User, DayHistoryUserInfo
 from .serializers import UserSerializer
+from .OAuthInfo import NAVER_REST_API_KEY, NAVER_SECRET, KAKAO_REST_API_KEY
 
 from rest_framework.authentication import TokenAuthentication
 from django.contrib.auth import authenticate
@@ -13,6 +16,11 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 # Create your views here.
 
 from datetime import datetime
+from django.shortcuts import redirect
+from django.http import JsonResponse
+import requests
+import urllib.request
+import json
 
 class SignUpView(APIView):
     permission_classes = [AllowAny]
@@ -43,7 +51,6 @@ class SignUpView(APIView):
         except :
             return Response({"error":"모두 입력해주세요"}, status=400)
 
-
 class LogInView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
@@ -64,6 +71,115 @@ class LogInView(APIView):
         else:
             return Response({"error":"존재하지 않는 ID 이거나 PassWord입니다"}, status=400)
 
+class NaverLoginView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, code, state):
+
+        naver_token_api = 'https://nid.naver.com/oauth2.0/token'
+        data = {
+            'grant_type': 'authorization_code',
+            'client_id': NAVER_REST_API_KEY,
+            #'redirection_uri': 'http://localhost:8000/user/naver/login',
+            'client_secret': NAVER_SECRET,
+            'code': code,
+            'state': state
+        }
+
+        token_response = requests.post(naver_token_api, data=data)
+
+        access_token = token_response.json().get('access_token')
+
+        header = "Bearer " + access_token # Bearer 다음에 공백 추가
+        url = "https://openapi.naver.com/v1/nid/me"
+        request = urllib.request.Request(url)
+        request.add_header("Authorization", header)
+        response = urllib.request.urlopen(request)
+        rescode = response.getcode()
+        if(rescode==200):
+            response_body = response.read()
+            print(response_body.decode('utf-8'))
+        else:
+            print("Error Code:" + rescode)
+
+        user_info = json.loads(response_body.decode('utf-8'))
+        user_id = user_info['response']['id']
+
+        #소셜로그인 진행
+        users = User.objects.all()
+
+        #처음 로그인하는 유저: 회원가입 -> 로그인 
+        #이미 로그인한 이력 있는 유저: 로그인
+        #회원가입
+        if not users.filter(username = user_id).exists() :
+            user = User.objects.create_user(
+                    username=user_info['response']['id'], 
+                    password=user_info['response']['id'],
+                    name=user_info['response']['name'],
+                    gender=user_info['response']['gender'],
+                    email=user_info['response']['email'],
+                    birth=user_info['response']['birthyear']+'-'+user_info['response']['birthday'],
+                )
+            user.save()
+            
+            token = Token.objects.create(user=user)
+            print('회원가입 완료')
+
+        #로그인
+        user = authenticate(username=user_id, password=user_id)
+        if user is not None:
+            q = User.objects.get(username=user_id)
+            serializer = UserSerializer(q)
+
+            token = Token.objects.get(user=user)
+            return Response({
+                "code" : 200,
+                "User": serializer.data,
+                "message": "로그인완료",
+                "Token": token.key
+            })
+
+        return Response({"error":"에러발생"}, status=400)
+
+
+class KakaoLoginView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, code):
+
+        kakao_token_api = 'https://kauth.kakao.com/oauth/token'
+        data = {
+            'grant_type': 'authorization_code',
+            'client_id': KAKAO_REST_API_KEY,
+            'redirection_uri': 'http://localhost:8000/user/kakao/login',
+            'code': code
+        }
+        #http://localhost:8000/accounts/signin/kakao/callback
+        token_response = requests.post(kakao_token_api, data=data)
+
+        access_token = token_response.json().get('access_token')
+        header = "Bearer " + access_token # Bearer 다음에 공백 추가
+        url = "https://kapi.kakao.com/v2/user/me"
+        request = urllib.request.Request(url)
+        request.add_header("Authorization", header)
+        response = urllib.request.urlopen(request)
+        rescode = response.getcode()
+        if(rescode==200):
+            response_body = response.read()
+            print(response_body.decode('utf-8'))
+        else:
+            print("Error Code:" + rescode)
+
+        user_info = json.loads(response_body.decode('utf-8'))
+        # user_info_response = requests.post('https://kapi.kakao.com/v2/user/me', headers={"Authorization": f'Bearer ${access_token}'}).json()
+        # # user_info_response['id']
+        # print(user_info_response)
+    
+
+
+        return JsonResponse({"user_info": response_body.decode('utf-8')})
+        # return Response({
+        #         "code" : 200,
+        #         "message": " 완료",
+        #     })
 
 class BeginningUserInfoView(APIView):
     #authentication_classes = [TokenAuthentication]

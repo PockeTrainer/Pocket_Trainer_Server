@@ -1,4 +1,5 @@
 from cgitb import html
+import email
 from django.contrib.auth.models import Permission
 from django.shortcuts import redirect
 
@@ -64,8 +65,8 @@ class LogInView(APIView):
             token = Token.objects.get(user=user)
             return Response({
                 "code" : 200,
-                "User": serializer.data,
                 "message": "로그인완료",
+                "User": serializer.data,
                 "Token": token.key
             })
         else:
@@ -110,12 +111,17 @@ class NaverLoginView(APIView):
         #처음 로그인하는 유저: 회원가입 -> 로그인 
         #이미 로그인한 이력 있는 유저: 로그인
         #회원가입
+        mw = ''
+        if user_info['response']['gender'] == 'M':
+            mw = 'man'
+        elif user_info['response']['gender'] == 'F':
+            mw = 'woman'
         if not users.filter(username = user_id).exists() :
             user = User.objects.create_user(
                     username=user_info['response']['id'], 
                     password=user_info['response']['id'],
                     name=user_info['response']['name'],
-                    gender=user_info['response']['gender'],
+                    gender=mw,
                     email=user_info['response']['email'],
                     birth=user_info['response']['birthyear']+'-'+user_info['response']['birthday'],
                 )
@@ -133,8 +139,8 @@ class NaverLoginView(APIView):
             token = Token.objects.get(user=user)
             return Response({
                 "code" : 200,
-                "User": serializer.data,
                 "message": "로그인완료",
+                "User": serializer.data,
                 "Token": token.key
             })
 
@@ -169,13 +175,47 @@ class KakaoLoginView(APIView):
             print("Error Code:" + rescode)
 
         user_info = json.loads(response_body.decode('utf-8'))
-        # user_info_response = requests.post('https://kapi.kakao.com/v2/user/me', headers={"Authorization": f'Bearer ${access_token}'}).json()
-        # # user_info_response['id']
-        # print(user_info_response)
-    
+        user_id = user_info['id']
 
+        #소셜로그인 진행
+        users = User.objects.all()
 
-        return JsonResponse({"user_info": response_body.decode('utf-8')})
+        #처음 로그인하는 유저: 가지고 있는 정보 채워서 회원가입 창으로 이동 
+        if not users.filter(username = user_id).exists() :
+            id = user_id
+            password = user_id
+            name = user_info['kakao_account']['profile']['nickname']
+            email = user_info['kakao_account']['email']     
+            mw = ''
+            if user_info['kakao_account']['gender'] == 'male':
+                mw = 'man'
+            elif user_info['kakao_account']['gender'] == 'female':
+                mw = 'woman'
+            return Response({
+                "code" : 200,
+                "message": "회원정보 불러오기 완료, 회원가입 창 이동",
+                "id" : id,
+                "password" : password,
+                "name" : name,
+                "email" : email,
+                "gender" : mw
+            })
+        #이미 로그인한 이력 있는 유저: 로그인
+        else: 
+            user = authenticate(username=user_id, password=user_id)
+            if user is not None:
+                q = User.objects.get(username=user_id)
+                serializer = UserSerializer(q)
+
+                token = Token.objects.get(user=user)
+                return Response({
+                    "code" : 200,
+                    "message": "로그인완료",
+                    "User": serializer.data,
+                    "Token": token.key
+                })
+
+        return Response({"error":"에러발생"}, status=400)
         # return Response({
         #         "code" : 200,
         #         "message": " 완료",

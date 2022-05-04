@@ -757,7 +757,7 @@ class SaveTestResultView(APIView):
 class TodayRoutineView(APIView):
     permission_classes = [AllowAny]
     def get(self, request, user_id):
- #       try:
+#       try:
         user = User.objects.get(id=user_id)
 
         #오늘의 루틴 기록
@@ -1024,8 +1024,8 @@ class WorkoutFeedbackView(APIView):
                     User_WorkoutInfo.target_kg += 5
                 # 무거움
                 elif (int(request.data['feedback']) == 2):
-                    if (User_WorkoutInfo.target_kg - 1) > 0:
-                        User_WorkoutInfo.target_kg -= 1       
+                    if (User_WorkoutInfo.target_kg - 5) > 0:
+                        User_WorkoutInfo.target_kg -= 5       
                     else:
                         Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)          
             #횟수 조정

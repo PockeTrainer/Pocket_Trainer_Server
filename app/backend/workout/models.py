@@ -5,7 +5,7 @@ from accounts import models as user_model
 #운동 정보
 class WorkoutInfo(models.Model):
     workout_name = models.CharField(primary_key=True, max_length=200)
-    workout_kcal = models.IntegerField()
+    workout_kcal = models.FloatField()
     body_part = models.CharField(null=True, blank=True, max_length=200)
 
     def __str__(self):
@@ -27,6 +27,7 @@ class DayHistoryWorkout(models.Model):
     workout_time = models.TimeField(null=True, blank=True)
     start_datetime = models.DateTimeField(null=True, blank=True)
     end_datetime = models.DateTimeField(null=True, blank=True)
+    workout_kcal_consumption = models.FloatField(null=True, blank=True)
     is_clear = models.BooleanField(default=False)
 
     def __str__(self):

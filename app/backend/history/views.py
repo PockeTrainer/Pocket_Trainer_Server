@@ -18,6 +18,8 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 import datetime
 from dateutil.relativedelta import *
 
+from django.db.models import Sum
+
 #mainpage 정보 호출
 class MainPageInfoView(APIView):
     permission_classes = [AllowAny]
@@ -44,12 +46,16 @@ class MainPageInfoView(APIView):
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
+        #오늘 소비 칼로리
+        today_kcal_consumption = DayHistoryWorkout.objects.filter(user_id=user, create_date=today).aggregate(Sum('workout_kcal_consumption'))
+
         if len(DayHistory_Workout_q) == 0:
             return Response({"error":"mainpage정보 호출 실패, 오늘의 루틴 생성 필요"}, status=400)
 
         #운동 성취도(clear 운동 비율)
         cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_clear=True)
         percentage = int(len(cleared_workout) / len(DayHistory_Workout_q) * 100)
+
 
         #운동 그래프 (8개월간 기록-중량,갯수,시간)- default 'bench_press'
         last_8months_lst = []   #지난 8개월
@@ -71,6 +77,7 @@ class MainPageInfoView(APIView):
                 for j in range(len(DayHistory_Workout)):
                     month_target_sum += DayHistory_Workout[j].target_kg
                 clearworkout_target_avg_lst.append(month_target_sum//len(DayHistory_Workout))
+
 
         #오늘 먹은 음식 기록
         DayHistoryDiet_q = DayHistoryDiet.objects.filter(user_id=user, create_date=today)
@@ -95,6 +102,7 @@ class MainPageInfoView(APIView):
 
         #오늘 - 어제 칼로리
         diff_kcal = today_kcal - yesterday_kcal
+
 
         #섭취한 탄,단,지 list (6일)
         carbohydrate_list = []        
@@ -129,6 +137,7 @@ class MainPageInfoView(APIView):
             "target_kcal" : target_kcal,
             "today_kcal" : today_kcal,
             "diff_kcal" : diff_kcal,
+            "today_kcal_consumption" : today_kcal_consumption,
             "workout_graph" : {
                 "last_8months_lst" : last_8months_lst,
                 "clearworkout_target_avg_lst" : clearworkout_target_avg_lst
@@ -246,7 +255,6 @@ class MonthHistoryView(APIView):
             else:
                 is_clear_list.append(False)
 
-
         return Response({
                 "code" : "200",
                 "message" : "월 기록 호출 완료",
@@ -284,6 +292,9 @@ class DayHistoryView(APIView):
         #해당일 운동 기록 기록
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
+
+        #해당일 소비 칼로리
+        today_kcal_consumption = DayHistoryWorkout.objects.filter(user_id=user, create_date=date).aggregate(Sum('workout_kcal_consumption'))
 
         #해당일 먹은 음식 기록
         DayHistoryDiet_q = DayHistoryDiet.objects.filter(user_id=user, create_date=date)
@@ -337,6 +348,7 @@ class DayHistoryView(APIView):
                 "day_weight" : day_weight,
                 "day_bmi" : day_bmi,
                 "day_history_workout" : DayHistoryWorkout_Serializer.data,
+                "today_kcal_consumption" : today_kcal_consumption,
                 "day_history_diet" : DayHistoryDiet_Serializer.data,
                 "nutrient" : {
                     "target_kcal" : target_kcal,

@@ -11,6 +11,7 @@ class workoutInfoSerializer(serializers.ModelSerializer):
 
 class DayHistorySerializer(serializers.ModelSerializer):
     workout_name = workoutInfoSerializer(read_only=True)
+
     class Meta:
         fields = '__all__'
         model = DayHistoryWorkout

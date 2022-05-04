@@ -14,185 +14,185 @@ from .serializers import DayHistorySerializer
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
-from datetime import datetime
+import datetime
 
 class CreateRoutineView(APIView):
     permission_classes = [AllowAny]
     def post(self, request, user_id):
         user = User.objects.get(id=user_id)
 
-        date = datetime.now().date()
+        date = datetime.datetime.now().date()
         DayHistory_Workout = DayHistoryWorkout.objects.filter(user_id = user, create_date=date)
         
-        try:
+        #try:
             #해당일 계획 존재 하지 않을 때 운동루틴 레벨에 맞게 계획 세우기
-            if len(DayHistory_Workout) == 0 :
-                try:
-                    User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)
-                except UserWorkoutRoutine.DoesNotExist:
-                    return Response({"error":"오늘의 운동 루틴 생성 실패, 체력평가 결과 필요"}, status=400)
-                todayRoutine = User_WorkoutRoutine.workout_routine
-                
-                # row 추가 code
-                if (todayRoutine == 0) :
-                    # 가슴 운동
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="bench_press")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+        if len(DayHistory_Workout) == 0 :
+            try:
+                User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)
+            except UserWorkoutRoutine.DoesNotExist:
+                return Response({"error":"오늘의 운동 루틴 생성 실패, 체력평가 결과 필요"}, status=400)
+            todayRoutine = User_WorkoutRoutine.workout_routine
+            
+            # row 추가 code
+            if (todayRoutine == 0) :
+                # 가슴 운동
+                Workout_Info = WorkoutInfo.objects.get(workout_name="bench_press")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
 
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="incline_press")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+                Workout_Info = WorkoutInfo.objects.get(workout_name="incline_press")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
 
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="pec_dec_fly")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+                Workout_Info = WorkoutInfo.objects.get(workout_name="pec_dec_fly")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
 
-                    #삼두 운동
-                    triceps_seq = User_WorkoutRoutine.triceps_seq  #삼두 순서
-                    if triceps_seq == 0:
-                        workout = "cable_push_down"
-                    elif triceps_seq == 1:
-                        workout = "lying_triceps_extension"
-                    elif triceps_seq == 2:
-                        workout = "dumbbell_kickback"
+                #삼두 운동
+                triceps_seq = User_WorkoutRoutine.triceps_seq  #삼두 순서
+                if triceps_seq == 0:
+                    workout = "cable_push_down"
+                elif triceps_seq == 1:
+                    workout = "lying_triceps_extension"
+                elif triceps_seq == 2:
+                    workout = "dumbbell_kickback"
 
-                    Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+                Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
 
-                    #복부 운동
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="crunch")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+                #복부 운동
+                Workout_Info = WorkoutInfo.objects.get(workout_name="crunch")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_cnt = User_WorkoutInfo.target_cnt
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_cnt = User_WorkoutInfo.target_cnt
+                created_DayHistory_Workout.save()
 
-                elif (todayRoutine == 1) :
-                    # 등 운동
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="lat_pull_down")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+            elif (todayRoutine == 1) :
+                # 등 운동
+                Workout_Info = WorkoutInfo.objects.get(workout_name="lat_pull_down")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
 
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="seated_row")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+                Workout_Info = WorkoutInfo.objects.get(workout_name="seated_row")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
 
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="one_arm_dumbbell_row")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+                Workout_Info = WorkoutInfo.objects.get(workout_name="one_arm_dumbbell_row")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
 
-                    # 이두 운동
-                    biceps_seq = User_WorkoutRoutine.biceps_seq  #이두 순서
-                    if biceps_seq == 0:
-                        workout = "easy_bar_curl"
-                    elif biceps_seq == 1:
-                        workout = "arm_curl"
-                    elif biceps_seq == 2:
-                        workout = "hammer_curl"
+                # 이두 운동
+                biceps_seq = User_WorkoutRoutine.biceps_seq  #이두 순서
+                if biceps_seq == 0:
+                    workout = "easy_bar_curl"
+                elif biceps_seq == 1:
+                    workout = "arm_curl"
+                elif biceps_seq == 2:
+                    workout = "hammer_curl"
 
-                    Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+                Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
 
-                    # 복부 운동
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="seated_knees_up")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+                # 복부 운동
+                Workout_Info = WorkoutInfo.objects.get(workout_name="seated_knees_up")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_cnt = User_WorkoutInfo.target_cnt
-                    created_DayHistory_Workout.save()
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_cnt = User_WorkoutInfo.target_cnt
+                created_DayHistory_Workout.save()
 
-                else:
-                    # 어깨 운동
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="dumbbell_shoulder_press")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
-
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
-
-
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="side_lateral_raise")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
-
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
-
-
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="reverse_peck_deck_fly")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
-
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
-
-                    # 하체 운동
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="squat")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
-
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
-
-
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="leg_press")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
-
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
-
-
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="leg_extension")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
-
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
-                    created_DayHistory_Workout.save()
-
-                    # 복부 운동
-                    Workout_Info = WorkoutInfo.objects.get(workout_name="plank")
-                    User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
-
-                    created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
-                    created_DayHistory_Workout.target_time = User_WorkoutInfo.target_time
-                    created_DayHistory_Workout.save()
-                
-                return Response({
-                        "code" : "200",
-                        "message" : "workout row 생성 완료",
-                    })
             else:
-                return Response({"error":"오늘의 운동 계획이 이미 생성되었습니다"}, status=400)
-        except:
-            return Response({"error":"workout row 생성 실패."}, status=400)
+                # 어깨 운동
+                Workout_Info = WorkoutInfo.objects.get(workout_name="dumbbell_shoulder_press")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
+
+
+                Workout_Info = WorkoutInfo.objects.get(workout_name="side_lateral_raise")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
+
+
+                Workout_Info = WorkoutInfo.objects.get(workout_name="reverse_peck_deck_fly")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
+
+                # 하체 운동
+                Workout_Info = WorkoutInfo.objects.get(workout_name="squat")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
+
+
+                Workout_Info = WorkoutInfo.objects.get(workout_name="leg_press")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
+
+
+                Workout_Info = WorkoutInfo.objects.get(workout_name="leg_extension")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
+                created_DayHistory_Workout.save()
+
+                # 복부 운동
+                Workout_Info = WorkoutInfo.objects.get(workout_name="plank")
+                User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
+
+                created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
+                created_DayHistory_Workout.target_time = User_WorkoutInfo.target_time
+                created_DayHistory_Workout.save()
+            
+            return Response({
+                    "code" : "200",
+                    "message" : "workout row 생성 완료",
+                })
+        else:
+            return Response({"error":"오늘의 운동 계획이 이미 생성되었습니다"}, status=400)
+        #except:
+        #    return Response({"error":"workout row 생성 실패."}, status=400)
 
 #제일 최근 평가 기록 가져오기
 class LastTestResultView(APIView):
@@ -233,7 +233,7 @@ class SaveTestResultView(APIView):
     def post(self, request, user_id):
         user = User.objects.get(id=user_id)
 
-        today = datetime.now().date()
+        today = datetime.datetime.now().date()
         age = today.year - user.birth.year
         if today.month < user.birth.month or (today.month == user.birth.month and today.day < user.birth.day) : 
             age -= 1
@@ -761,7 +761,7 @@ class TodayRoutineView(APIView):
         user = User.objects.get(id=user_id)
 
         #오늘의 루틴 기록
-        today = datetime.now().date()
+        today = datetime.datetime.now().date()
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)    
 
@@ -875,7 +875,7 @@ class SaveStartDateTimeView(APIView):
             #오늘의 루틴 기록
             DayHistory_Workout_q = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
 
-            today = datetime.now()
+            today = datetime.datetime.now()
             DayHistory_Workout_q.start_datetime = today
             DayHistory_Workout_q.save()
 
@@ -897,7 +897,7 @@ class SaveEndDateTimetView(APIView):
             #오늘의 루틴 기록
             DayHistory_Workout_q = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
 
-            today = datetime.now()
+            today = datetime.datetime.now()
             DayHistory_Workout_q.end_datetime = today
             DayHistory_Workout_q.save()
 
@@ -919,6 +919,17 @@ class WorkoutResultView(APIView):
         DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
         DayHistory_Workout.workout_set = request.data['workout_set']
         DayHistory_Workout.workout_time = request.data['workout_time']
+
+
+        time_str = DayHistory_Workout.workout_time
+        time_format = "%H:%M:%S"
+        time = datetime.datetime.strptime(time_str, time_format)
+
+        time = datetime.timedelta(hours=time.hour,minutes=time.minute,seconds=time.second)
+        seconds = time.total_seconds()
+        sec_to_min = seconds / 60
+        print(round(sec_to_min * Workout_Info.workout_kcal, 1))
+        DayHistory_Workout.workout_kcal_consumption = round(sec_to_min * Workout_Info.workout_kcal, 1)
 
         User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)    
 
@@ -1035,7 +1046,7 @@ class WorkoutFeedbackView(APIView):
                     User_WorkoutInfo.target_time += "00:00:10" 
                 # 어려움
                 elif (int(request.data['feedback']) == 2):
-                    if (User_WorkoutInfo.target_time - "00:00:10" ) > 0:
+                    if (User_WorkoutInfo.target_time - "00:00:10") > 0:
                         User_WorkoutInfo.target_time -= "00:00:10"       
                     else:
                         Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)                      

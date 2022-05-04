@@ -973,7 +973,7 @@ class WorkoutResultView(APIView):
                     User_WorkoutRoutine.last_routine2_date = date
                     User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
 
-        #DayHistory_Workout.save()
+        DayHistory_Workout.save()
         User_WorkoutRoutine.save()
 
         return Response({

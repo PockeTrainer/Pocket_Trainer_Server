@@ -56,7 +56,6 @@ class MainPageInfoView(APIView):
         cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_clear=True)
         percentage = int(len(cleared_workout) / len(DayHistory_Workout_q) * 100)
 
-
         #운동 그래프 (8개월간 기록-중량,갯수,시간)- default 'bench_press'
         last_8months_lst = []   #지난 8개월
         clearworkout_target_avg_lst= []

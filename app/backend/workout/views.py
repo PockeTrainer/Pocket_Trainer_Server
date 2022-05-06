@@ -1005,7 +1005,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 1) > 0:
                         User_WorkoutInfo.target_kg -= 1       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)
             #원형 추 사용
             elif (workout in ['bench_press', 'incline_press', 'easy_bar_curl', 'squat', 'leg_press']):
                 # 가벼움
@@ -1016,7 +1016,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 5) > 0:
                         User_WorkoutInfo.target_kg -= 5       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)     
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)     
             #머신 사용 (단위: 파운드)
             elif (workout in ['pec_dec_fly', 'lat_pull_dow', 'seated_row', 'reverse_peck_deck_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
                 # 가벼움
@@ -1027,7 +1027,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 5) > 0:
                         User_WorkoutInfo.target_kg -= 5       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)          
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)          
             #횟수 조정
             elif (workout in ['crunch', 'seated_knees_up']):
                 # 쉬움
@@ -1038,7 +1038,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_cnt - 2) > 0:
                         User_WorkoutInfo.target_cnt -= 2       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)  
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)  
             #시간 조정
             elif (workout in ['plank']):
                 # 쉬움
@@ -1049,7 +1049,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_time - "00:00:10") > 0:
                         User_WorkoutInfo.target_time -= "00:00:10"       
                     else:
-                        Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)                      
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)                      
 
             User_WorkoutInfo.save()
 

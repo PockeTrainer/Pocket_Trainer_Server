@@ -146,7 +146,7 @@ class CreateRoutineView(APIView):
                 created_DayHistory_Workout.save()
 
 
-                Workout_Info = WorkoutInfo.objects.get(workout_name="reverse_peck_deck_fly")
+                Workout_Info = WorkoutInfo.objects.get(workout_name="reverse_pec_dec_fly")
                 User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
                 created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
@@ -669,7 +669,7 @@ class SaveTestResultView(APIView):
         User_WorkoutInfo.target_kg = kg
         User_WorkoutInfo.save()
 
-        Workout_Info = WorkoutInfo.objects.get(workout_name="reverse_peck_deck_fly")
+        Workout_Info = WorkoutInfo.objects.get(workout_name="reverse_pec_dec_fly")
         User_WorkoutInfo, created = UserWorkoutInfo.objects.update_or_create(user_id = user, workout_name = Workout_Info)
         User_WorkoutInfo.target_kg = kg
         User_WorkoutInfo.save()
@@ -1018,7 +1018,7 @@ class WorkoutFeedbackView(APIView):
                     else:
                         return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)     
             #머신 사용 (단위: 파운드)
-            elif (workout in ['pec_dec_fly', 'lat_pull_down', 'seated_row', 'reverse_peck_deck_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
+            elif (workout in ['pec_dec_fly', 'lat_pull_down', 'seated_row', 'reverse_pec_dec_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
                 # 가벼움
                 if (int(request.data['feedback']) == 1):
                     User_WorkoutInfo.target_kg += 5

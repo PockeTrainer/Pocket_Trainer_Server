@@ -97,7 +97,7 @@ class CreateRoutineView(APIView):
                 created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
                 created_DayHistory_Workout.save()
 
-                Workout_Info = WorkoutInfo.objects.get(workout_name="one_arm_dumbbell_row")
+                Workout_Info = WorkoutInfo.objects.get(workout_name="barbell_row")
                 User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id = user, workout_name = Workout_Info)
 
                 created_DayHistory_Workout = DayHistoryWorkout.objects.create(user_id=user, create_date=date, workout_name=Workout_Info)
@@ -653,7 +653,7 @@ class SaveTestResultView(APIView):
         User_WorkoutInfo.target_kg = kg
         User_WorkoutInfo.save()
 
-        Workout_Info = WorkoutInfo.objects.get(workout_name="one_arm_dumbbell_row")
+        Workout_Info = WorkoutInfo.objects.get(workout_name="barbell_row")
         User_WorkoutInfo, created = UserWorkoutInfo.objects.update_or_create(user_id = user, workout_name = Workout_Info)
         User_WorkoutInfo.target_kg = kg
         User_WorkoutInfo.save()
@@ -996,7 +996,7 @@ class WorkoutFeedbackView(APIView):
 
             #feedback에 따른 무게 수정
             #덤벨
-            if (workout in ['one_arm_dumbbell_row', 'dumbbell_shoulder_press', 'side_lateral_raise', 'lying_triceps_extension', 'dumbbell_kickback', 'hammer_curl']):
+            if (workout in ['barbell_row', 'dumbbell_shoulder_press', 'side_lateral_raise', 'lying_triceps_extension', 'dumbbell_kickback', 'hammer_curl']):
                 # 가벼움
                 if (int(request.data['feedback']) == 1):
                     User_WorkoutInfo.target_kg += 1

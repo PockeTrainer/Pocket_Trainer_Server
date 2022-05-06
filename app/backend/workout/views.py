@@ -1018,7 +1018,7 @@ class WorkoutFeedbackView(APIView):
                     else:
                         return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)     
             #머신 사용 (단위: 파운드)
-            elif (workout in ['pec_dec_fly', 'lat_pull_dow', 'seated_row', 'reverse_peck_deck_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
+            elif (workout in ['pec_dec_fly', 'lat_pull_down', 'seated_row', 'reverse_peck_deck_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
                 # 가벼움
                 if (int(request.data['feedback']) == 1):
                     User_WorkoutInfo.target_kg += 5

@@ -37,7 +37,7 @@ class DayHistoryWorkout(models.Model):
 class DayHistoryExtraWorkout(models.Model):
     user_id = models.ForeignKey(user_model.User, 
                             on_delete=models.CASCADE,
-                            related_name='day_history_workout')
+                            related_name='day_history_extra_workout')
     create_date = models.DateField()
     workout_name = models.ForeignKey(WorkoutInfo, 
                                 on_delete=models.CASCADE,                            
@@ -48,3 +48,23 @@ class DayHistoryExtraWorkout(models.Model):
 
     def __str__(self):
         return f'{self.user_id}_{self.create_date}_추가운동기록'
+
+# 잘못된 자세 기록
+class DayHistoryWorkoutWrongPoses(models.Model):
+    dayHistoryWorkout_id = models.ForeignKey(DayHistoryWorkout,
+                                        on_delete=models.CASCADE,
+                                        related_name='day_history_workout_wrong_poses')
+    wrong_pose = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f'{self.user_id}_{self.create_date}_잘못된 자세 기록'
+
+# 추가 운동 잘못된 자세 기록
+class DayHistoryExtraWorkoutWrongPoses(models.Model):
+    dayHistoryExtraWorkout_id = models.ForeignKey(DayHistoryExtraWorkout,
+                                        on_delete=models.CASCADE,
+                                        related_name='day_history_extra_workout_wrong_poses')
+    wrong_pose = models.CharField(max_length=200)
+
+    def __str__(self):
+        return f'{self.user_id}_{self.create_date}_잘못된 자세 기록'

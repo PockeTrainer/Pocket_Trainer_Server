@@ -9,7 +9,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from accounts.models import User, UserTestResult, UserWorkoutInfo, UserWorkoutRoutine
-from .models import DayHistoryWorkout, WorkoutInfo
+from .models import DayHistoryWorkout, DayHistoryWorkoutWrongPoses, WorkoutInfo
 from .serializers import DayHistorySerializer
 
 from rest_framework.permissions import AllowAny, IsAuthenticated
@@ -931,6 +931,13 @@ class WorkoutResultView(APIView):
         DayHistory_Workout.workout_kcal_consumption = round(sec_to_min * Workout_Info.workout_kcal, 1)
 
         User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)    
+
+        # 해당 운동 잘못된 자세 넘어오면 테이블에 저장
+        if ('wrong_poses' in request.data):
+            wrong_poses_lst = list(request.data['wrong_poses'].split(','))
+            wrong_poses_lst = [wrong_pose.lstrip() for wrong_pose in wrong_poses_lst]
+            for wrong_pose in wrong_poses_lst:
+                DayHistoryWorkoutWrongPoses.objects.get_or_create(dayHistoryWorkout_id=DayHistory_Workout, wrong_pose=wrong_pose)
 
         # 아직 완료하지 않은 운동이고 해당 운동이 마지막 세트면 
         if (not DayHistory_Workout.is_clear and int(request.data['workout_set']) == 5) :

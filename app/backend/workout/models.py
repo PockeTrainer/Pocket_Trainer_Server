@@ -57,7 +57,7 @@ class DayHistoryWorkoutWrongPoses(models.Model):
     wrong_pose = models.CharField(max_length=200)
 
     def __str__(self):
-        return f'{self.user_id}_{self.create_date}_잘못된 자세 기록'
+        return f'{self.dayHistoryWorkout_id.user_id}_잘못된 자세 기록'
 
 # 추가 운동 잘못된 자세 기록
 class DayHistoryExtraWorkoutWrongPoses(models.Model):

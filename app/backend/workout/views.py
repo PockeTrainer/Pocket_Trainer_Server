@@ -920,7 +920,7 @@ class WorkoutResultView(APIView):
         DayHistory_Workout.workout_set = request.data['workout_set']
         DayHistory_Workout.workout_time = request.data['workout_time']
 
-
+        # 운동 소모 칼로리  = (운동 시간) * (분당 해당운동 소모 칼로리)
         time_str = DayHistory_Workout.workout_time
         time_format = "%H:%M:%S"
         time = datetime.datetime.strptime(time_str, time_format)
@@ -928,7 +928,6 @@ class WorkoutResultView(APIView):
         time = datetime.timedelta(hours=time.hour,minutes=time.minute,seconds=time.second)
         seconds = time.total_seconds()
         sec_to_min = seconds / 60
-        print(round(sec_to_min * Workout_Info.workout_kcal, 1))
         DayHistory_Workout.workout_kcal_consumption = round(sec_to_min * Workout_Info.workout_kcal, 1)
 
         User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)    

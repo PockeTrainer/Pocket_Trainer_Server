@@ -64,7 +64,6 @@ class DayHistoryExtraWorkoutWrongPoses(models.Model):
     dayHistoryExtraWorkout_id = models.ForeignKey(DayHistoryExtraWorkout,
                                         on_delete=models.CASCADE,
                                         related_name='day_history_extra_workout_wrong_poses')
-    wrong_pose = models.CharField(max_length=200)
 
     def __str__(self):
         return f'{self.dayHistoryWorkout_id.user_id}_{self.dayHistoryWorkout_id.create_date}_{self.dayHistoryWorkout_id.workout_name}_잘못된 자세 기록'

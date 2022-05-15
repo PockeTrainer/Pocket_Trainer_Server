@@ -1,3 +1,4 @@
+from ssl import create_default_context
 from django.shortcuts import render
 #generics
 from rest_framework import status
@@ -16,9 +17,10 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 import datetime
-from dateutil.relativedelta import *
+from dateutil.relativedelta import relativedelta
 
 from django.db.models import Sum
+
 
 #mainpage 정보 호출
 class MainPageInfoView(APIView):
@@ -159,7 +161,7 @@ class WorkoutGraphView(APIView):
         today = datetime.datetime.now().date()
 
         user = User.objects.get(id=user_id)
-        #운동 그래프 (8개월간 기록-중량,갯수,시간)- default 'bench_press'
+        #운동 그래프 (8개월간 기록-중량,갯수,시간) - default 'bench_press'
         last_8months_lst = []   #지난 8개월
         clearworkout_target_avg_lst= []
         Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
@@ -364,3 +366,47 @@ class DayHistoryView(APIView):
         #except:
         #     return Response({"error":"해당일 기록이 존재하지 않습니다."}, status=400)
 
+class DayHistoryWorkoutInfoView(APIView):
+    #authentication_classes = [TokenAuthentication]
+    #permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+    def get(self, request, date, workout, user_id):
+        #try:
+        user = User.objects.get(id=user_id)
+
+        format = '%Y-%m-%d'
+        date_ = datetime.datetime.strptime(date, format)
+        one_years_ago_date = date_ - relativedelta(years=1)
+
+        #운동 그래프 (해당일 기준 이전 기록-중량,갯수,시간)
+        clearworkout_date_lst = []   
+        clearworkout_target_lst = []
+        Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
+
+        DayHistory_Workout = DayHistoryWorkout.objects.filter(user_id=user, workout_name=Workout_Info, create_date__range=[one_years_ago_date ,date_], is_clear=True)
+
+        length = min(4, len(DayHistory_Workout))
+        for i in range(length):
+            #target 종류에 따라
+            #횟수 
+            if (workout in ['crunch', 'seated_knees_up']):
+                target = DayHistory_Workout[i].target_cnt
+            #시간 
+            elif (workout in ['plank']):
+                target = DayHistory_Workout[i].target_time
+                
+            #중량 
+            else:
+                target = DayHistory_Workout[i].target_kg
+
+            clearworkout_date_lst.append(DayHistory_Workout[i].create_date)
+            clearworkout_target_lst.append(target)
+
+        return Response({
+                "code" : "200",
+                "message" : "해당일 운동 정보 호출 완료",
+                "workout_graph" : {
+                    "clearworkout_date_lst" : clearworkout_date_lst,
+                    "clearworkout_target_lst" : clearworkout_target_lst
+                },
+            })        

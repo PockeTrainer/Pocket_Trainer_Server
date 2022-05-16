@@ -6,7 +6,7 @@ from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from accounts.models import User, DayHistoryUserInfo, UserTestResult
-from workout.models import DayHistoryWorkout, WorkoutInfo
+from workout.models import DayHistoryWorkout, WorkoutInfo, DayHistoryWorkoutWrongPoses
 from diet.models import DayHistoryDiet
 #from .models import dayHistoryUserInfo, dayHistoryWorkout, workoutInfo
 from accounts.serializers import UserSerializer
@@ -290,10 +290,25 @@ class DayHistoryView(APIView):
             day_weight = DayHistory_UserInfo[0].weight
             day_bmi = DayHistory_UserInfo[0].bmi
 
-        #해당일 운동 기록 기록
+
+        workout_lst = []
+
+        #해당일 운동 기록
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
+        
+        for day_workout in DayHistory_Workout_q:
+            workout_lst.append(day_workout.workout_name)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
+        #운동별 잘못된 자세 출력
+        wrong_poses_dict = {} 
+        for workout in workout_lst:
+            DayHistory_Workout_Wrong_Poses_q = DayHistoryWorkout.objects.get(user_id=user, workout_name = workout, create_date=date).day_history_workout_wrong_poses.values()
+   
+            wrong_poses_dict[workout.workout_name] = []  
+            for dayHistory_wrong_pose in DayHistory_Workout_Wrong_Poses_q:
+                wrong_poses_dict[workout.workout_name].append(dayHistory_wrong_pose['wrong_pose'])
+        
         #해당일 소비 칼로리
         today_kcal_consumption = DayHistoryWorkout.objects.filter(user_id=user, create_date=date).aggregate(Sum('workout_kcal_consumption'))
 
@@ -349,6 +364,7 @@ class DayHistoryView(APIView):
                 "day_weight" : day_weight,
                 "day_bmi" : day_bmi,
                 "day_history_workout" : DayHistoryWorkout_Serializer.data,
+                "wrong_poses_dict" : wrong_poses_dict,
                 "today_kcal_consumption" : today_kcal_consumption,
                 "day_history_diet" : DayHistoryDiet_Serializer.data,
                 "nutrient" : {

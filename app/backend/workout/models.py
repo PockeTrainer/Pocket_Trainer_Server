@@ -29,25 +29,26 @@ class DayHistoryWorkout(models.Model):
     end_datetime = models.DateTimeField(null=True, blank=True)
     workout_kcal_consumption = models.FloatField(null=True, blank=True)
     is_clear = models.BooleanField(default=False)
+    #is_extra_workout = models.BooleanField(default=False)
 
     def __str__(self):
         return f'{self.user_id}_{self.create_date}_{self.workout_name}_운동기록'
 
-#해당 날짜에 사용자의 추가 운동 기록 정보
-class DayHistoryExtraWorkout(models.Model):
-    user_id = models.ForeignKey(user_model.User, 
-                            on_delete=models.CASCADE,
-                            related_name='day_history_extra_workout')
-    create_date = models.DateField()
-    workout_name = models.ForeignKey(WorkoutInfo, 
-                                on_delete=models.CASCADE,                            
-                                related_name='day_history_workout')
-    workout_kg = models.IntegerField(null=True, blank=True)
-    workout_cnt = models.IntegerField(null=True, blank=True)
-    workout_time = models.TimeField(null=True, blank=True)
+# #해당 날짜에 사용자의 추가 운동 기록 정보
+# class DayHistoryExtraWorkout(models.Model):
+#     user_id = models.ForeignKey(user_model.User, 
+#                             on_delete=models.CASCADE,
+#                             related_name='day_history_extra_workout')
+#     create_date = models.DateField()
+#     workout_name = models.ForeignKey(WorkoutInfo, 
+#                                 on_delete=models.CASCADE,                            
+#                                 related_name='day_history_workout')
+#     workout_kg = models.IntegerField(null=True, blank=True)
+#     workout_cnt = models.IntegerField(null=True, blank=True)
+#     workout_time = models.TimeField(null=True, blank=True)
 
-    def __str__(self):
-        return f'{self.user_id}_{self.create_date}_추가운동기록'
+#     def __str__(self):
+#         return f'{self.user_id}_{self.create_date}_추가운동기록'
 
 # 잘못된 자세 기록
 class DayHistoryWorkoutWrongPoses(models.Model):
@@ -59,11 +60,11 @@ class DayHistoryWorkoutWrongPoses(models.Model):
     def __str__(self):
         return f'{self.dayHistoryWorkout_id.user_id}_{self.dayHistoryWorkout_id.create_date}_{self.dayHistoryWorkout_id.workout_name}_잘못된 자세 기록'
 
-# 추가 운동 잘못된 자세 기록
-class DayHistoryExtraWorkoutWrongPoses(models.Model):
-    dayHistoryExtraWorkout_id = models.ForeignKey(DayHistoryExtraWorkout,
-                                        on_delete=models.CASCADE,
-                                        related_name='day_history_extra_workout_wrong_poses')
+# # 추가 운동 잘못된 자세 기록
+# class DayHistoryExtraWorkoutWrongPoses(models.Model):
+#     dayHistoryExtraWorkout_id = models.ForeignKey(DayHistoryExtraWorkout,
+#                                         on_delete=models.CASCADE,
+#                                         related_name='day_history_extra_workout_wrong_poses')
 
-    def __str__(self):
-        return f'{self.dayHistoryWorkout_id.user_id}_{self.dayHistoryWorkout_id.create_date}_{self.dayHistoryWorkout_id.workout_name}_잘못된 자세 기록'
+#     def __str__(self):
+#         return f'{self.dayHistoryWorkout_id.user_id}_{self.dayHistoryWorkout_id.create_date}_{self.dayHistoryWorkout_id.workout_name}_잘못된 자세 기록'

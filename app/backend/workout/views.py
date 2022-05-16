@@ -22,7 +22,7 @@ class CreateRoutineView(APIView):
         user = User.objects.get(id=user_id)
 
         date = datetime.datetime.now().date()
-        DayHistory_Workout = DayHistoryWorkout.objects.filter(user_id = user, create_date=date)
+        DayHistory_Workout = DayHistoryWorkout.objects.filter(user_id = user, create_date=date, is_extra_workout=False)
         
         #try:
             #해당일 계획 존재 하지 않을 때 운동루틴 레벨에 맞게 계획 세우기
@@ -193,6 +193,29 @@ class CreateRoutineView(APIView):
             return Response({"error":"오늘의 운동 계획이 이미 생성되었습니다"}, status=400)
         #except:
         #    return Response({"error":"workout row 생성 실패."}, status=400)
+
+class CreateExtraWorkoutView(APIView):
+    permission_classes = [AllowAny]
+    def post(self, request, user_id):
+        
+        date = datetime.datetime.now().date()
+
+        user = User.objects.get(id=user_id)
+
+        # try:
+        extra_workout_lst = list(request.data['workouts'].split(','))
+        extra_workout_lst = [extra_workout.lstrip() for extra_workout in extra_workout_lst]
+        for extra_workout in extra_workout_lst:
+            Workout_Info = WorkoutInfo.objects.get(workout_name=extra_workout)
+            DayHistoryWorkout.objects.create(user_id = user, create_date=date, workout_name=Workout_Info, is_extra_workout=True)
+
+        return Response({
+                "code" : "200",
+                "message" : "추가운동 생성 완료",
+            })
+        # except:
+        #     return Response({"error":"추가운동이 생성되지 않았습니다."}, status=400)
+
 
 #제일 최근 평가 기록 가져오기
 class LastTestResultView(APIView):
@@ -762,7 +785,7 @@ class TodayRoutineView(APIView):
 
         #오늘의 루틴 기록
         today = datetime.datetime.now().date()
-        DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
+        DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_extra_workout=False)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)    
 
         try:
@@ -837,9 +860,10 @@ class ChangeUserWorkoutInfo(APIView):
         #try:
         user = User.objects.get(id=user_id)
         Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
+
         User_WorkoutInfo = UserWorkoutInfo.objects.get(user_id=user, workout_name=Workout_Info)
 
-        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, workout_name=Workout_Info, create_date=date)
+        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, workout_name=Workout_Info, create_date=date, is_extra_workout=request.data['is_extra_workout'])
 
         if('target_kg' in request.data) :
             User_WorkoutInfo.target_kg = request.data['target_kg']
@@ -873,7 +897,7 @@ class SaveStartDateTimeView(APIView):
             Workout_Info = WorkoutInfo.objects.get(workout_name=workout)     
 
             #오늘의 루틴 기록
-            DayHistory_Workout_q = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
+            DayHistory_Workout_q = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info, is_extra_workout=request.data['is_extra_workout'])
 
             today = datetime.datetime.now()
             DayHistory_Workout_q.start_datetime = today
@@ -895,7 +919,7 @@ class SaveEndDateTimetView(APIView):
             Workout_Info = WorkoutInfo.objects.get(workout_name=workout)     
 
             #오늘의 루틴 기록
-            DayHistory_Workout_q = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
+            DayHistory_Workout_q = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info, is_extra_workout=request.data['is_extra_workout'])
 
             today = datetime.datetime.now()
             DayHistory_Workout_q.end_datetime = today
@@ -916,7 +940,7 @@ class WorkoutResultView(APIView):
         user = User.objects.get(id=user_id)
         Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
 
-        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
+        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info, is_extra_workout=request.data['is_extra_workout'])
         DayHistory_Workout.workout_set = request.data['workout_set']
         DayHistory_Workout.workout_time = request.data['workout_time']
 
@@ -939,45 +963,47 @@ class WorkoutResultView(APIView):
             for wrong_pose in wrong_poses_lst:
                 DayHistoryWorkoutWrongPoses.objects.get_or_create(dayHistoryWorkout_id=DayHistory_Workout, wrong_pose=wrong_pose)
 
-        # 아직 완료하지 않은 운동이고 해당 운동이 마지막 세트면 
-        if (not DayHistory_Workout.is_clear and int(request.data['workout_set']) == 5) :
-            #해당 운동 is_clear => True 
-            DayHistory_Workout.is_clear = True
-            DayHistory_Workout.save()
+        # 오늘의 루틴 case
+        if request.data['is_extra_workout'] == False:
+            # 아직 완료하지 않은 운동이고 해당 운동이 마지막 세트면 
+            if (not DayHistory_Workout.is_clear and int(request.data['workout_set']) == 5) :
+                #해당 운동 is_clear => True 
+                DayHistory_Workout.is_clear = True
+                DayHistory_Workout.save()
 
-            #삼두 운동이면 삼두 순서+1
-            if (workout in ['cable_push_down', 'lying_triceps_extension', 'dumbbell_kickback']):
-                User_WorkoutRoutine.triceps_seq = (User_WorkoutRoutine.triceps_seq+1) % 3
-            #이두 운동이면 이두 순서+1    
-            elif (workout in ['easy_bar_curl', 'arm_curl', 'hammer_curl']):
-                User_WorkoutRoutine.biceps_seq = (User_WorkoutRoutine.biceps_seq+1) % 3
+                #삼두 운동이면 삼두 순서+1
+                if (workout in ['cable_push_down', 'lying_triceps_extension', 'dumbbell_kickback']):
+                    User_WorkoutRoutine.triceps_seq = (User_WorkoutRoutine.triceps_seq+1) % 3
+                #이두 운동이면 이두 순서+1    
+                elif (workout in ['easy_bar_curl', 'arm_curl', 'hammer_curl']):
+                    User_WorkoutRoutine.biceps_seq = (User_WorkoutRoutine.biceps_seq+1) % 3
 
-            today_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
-            cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date, is_clear=True)
-            percentage = len(cleared_workout) / len(today_workout)
+                today_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
+                cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date, is_clear=True)
+                percentage = len(cleared_workout) / len(today_workout)
 
-            # 아직 오늘 루틴 갱신X  &  오늘 clear 운동 50% 이상 -> 최근 루틴 완료 날짜 갱신, 루틴 + 1
-            if (User_WorkoutRoutine.workout_routine == 0):
-                if (User_WorkoutRoutine.last_routine0_date != date 
-                    and User_WorkoutRoutine.last_routine1_date != date
-                    and User_WorkoutRoutine.last_routine2_date != date
-                    and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine0_date = date
-                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
-            elif (User_WorkoutRoutine.workout_routine == 1):
-                if (User_WorkoutRoutine.last_routine0_date != date 
-                    and User_WorkoutRoutine.last_routine1_date != date
-                    and User_WorkoutRoutine.last_routine2_date != date
-                    and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine1_date = date
-                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
-            elif (User_WorkoutRoutine.workout_routine == 2):
-                if (User_WorkoutRoutine.last_routine0_date != date 
-                    and User_WorkoutRoutine.last_routine1_date != date
-                    and User_WorkoutRoutine.last_routine2_date != date
-                    and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine2_date = date
-                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
+                # 아직 오늘 루틴 갱신X  &  오늘 clear 운동 50% 이상 -> 최근 루틴 완료 날짜 갱신, 루틴 + 1
+                if (User_WorkoutRoutine.workout_routine == 0):
+                    if (User_WorkoutRoutine.last_routine0_date != date 
+                        and User_WorkoutRoutine.last_routine1_date != date
+                        and User_WorkoutRoutine.last_routine2_date != date
+                        and percentage >= 0.5):
+                        User_WorkoutRoutine.last_routine0_date = date
+                        User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
+                elif (User_WorkoutRoutine.workout_routine == 1):
+                    if (User_WorkoutRoutine.last_routine0_date != date 
+                        and User_WorkoutRoutine.last_routine1_date != date
+                        and User_WorkoutRoutine.last_routine2_date != date
+                        and percentage >= 0.5):
+                        User_WorkoutRoutine.last_routine1_date = date
+                        User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
+                elif (User_WorkoutRoutine.workout_routine == 2):
+                    if (User_WorkoutRoutine.last_routine0_date != date 
+                        and User_WorkoutRoutine.last_routine1_date != date
+                        and User_WorkoutRoutine.last_routine2_date != date
+                        and percentage >= 0.5):
+                        User_WorkoutRoutine.last_routine2_date = date
+                        User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
 
         DayHistory_Workout.save()
         User_WorkoutRoutine.save()

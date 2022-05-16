@@ -45,7 +45,7 @@ class MainPageInfoView(APIView):
 
         #오늘의 루틴 기록
         today = datetime.datetime.now().date()
-        DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
+        DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_extra_workout=False)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
         #오늘 소비 칼로리
@@ -55,7 +55,7 @@ class MainPageInfoView(APIView):
             return Response({"error":"mainpage정보 호출 실패, 오늘의 루틴 생성 필요"}, status=400)
 
         #운동 성취도(clear 운동 비율)
-        cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_clear=True)
+        cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=today, is_clear=True, is_extra_workout=False)
         percentage = int(len(cleared_workout) / len(DayHistory_Workout_q) * 100)
 
         #운동 그래프 (8개월간 기록-중량,갯수,시간)- default 'bench_press'
@@ -103,7 +103,6 @@ class MainPageInfoView(APIView):
 
         #오늘 - 어제 칼로리
         diff_kcal = today_kcal - yesterday_kcal
-
 
         #섭취한 탄,단,지 list (6일)
         carbohydrate_list = []        
@@ -243,8 +242,8 @@ class MonthHistoryView(APIView):
             else:    
                 bmi_list.append(target_DayHistoryUserInfo[0].bmi)
             
-            target_day_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=target_day)
-            cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=target_day, is_clear=True)
+            target_day_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=target_day, is_extra_workout=False)
+            cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=target_day, is_clear=True, is_extra_workout=False)
             # 운동루틴 생성하지 않은 날 -1 추가
             if len(target_day_workout) == 0:
                 is_clear_list.append(-1)
@@ -262,6 +261,17 @@ class MonthHistoryView(APIView):
                 "bmi_list" : bmi_list,        
                 "is_clear_list" : is_clear_list
             })
+
+def get_wrong_poses_dict(workout_lst, is_extra_value, user, date):
+    #운동별 잘못된 자세 출력
+    wrong_poses_dict = {} 
+    for workout in workout_lst:
+        DayHistory_Workout_Wrong_Poses_q = DayHistoryWorkout.objects.get(user_id=user, workout_name = workout, create_date=date, is_extra_workout=is_extra_value).day_history_workout_wrong_poses.values()
+
+        wrong_poses_dict[workout.workout_name] = []  
+        for dayHistory_wrong_pose in DayHistory_Workout_Wrong_Poses_q:
+            wrong_poses_dict[workout.workout_name].append(dayHistory_wrong_pose['wrong_pose'])
+    return wrong_poses_dict
 
 
 #일 기록 호출
@@ -291,24 +301,25 @@ class DayHistoryView(APIView):
             day_bmi = DayHistory_UserInfo[0].bmi
 
 
-        workout_lst = []
-
         #해당일 운동 기록
-        DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
-        
+        DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=date, is_extra_workout=False)
+        workout_lst = []
         for day_workout in DayHistory_Workout_q:
             workout_lst.append(day_workout.workout_name)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
-        #운동별 잘못된 자세 출력
-        wrong_poses_dict = {} 
-        for workout in workout_lst:
-            DayHistory_Workout_Wrong_Poses_q = DayHistoryWorkout.objects.get(user_id=user, workout_name = workout, create_date=date).day_history_workout_wrong_poses.values()
-   
-            wrong_poses_dict[workout.workout_name] = []  
-            for dayHistory_wrong_pose in DayHistory_Workout_Wrong_Poses_q:
-                wrong_poses_dict[workout.workout_name].append(dayHistory_wrong_pose['wrong_pose'])
-        
+        DayHistory_extra_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=date, is_extra_workout=True)
+        extra_workout_lst = []
+        for day_extra_workout in DayHistory_extra_Workout_q:
+            extra_workout_lst.append(day_extra_workout.workout_name)
+        DayHistoryExtraWorkout_Serializer = DayHistorySerializer(DayHistory_extra_Workout_q, many=True)
+
+        #잘못된 자세 dict
+        wrong_poses_dict = get_wrong_poses_dict(workout_lst, False, user, date)
+        extra_workout_wrong_poses_dict = get_wrong_poses_dict(extra_workout_lst, True, user, date)
+
+        wrong_poses_dict={}
+        extra_workout_wrong_poses_dict={}
         #해당일 소비 칼로리
         today_kcal_consumption = DayHistoryWorkout.objects.filter(user_id=user, create_date=date).aggregate(Sum('workout_kcal_consumption'))
 
@@ -365,6 +376,8 @@ class DayHistoryView(APIView):
                 "day_bmi" : day_bmi,
                 "day_history_workout" : DayHistoryWorkout_Serializer.data,
                 "wrong_poses_dict" : wrong_poses_dict,
+                "day_history_extra_workout" : DayHistoryExtraWorkout_Serializer.data,
+                "extra_workout_wrong_poses_dict" : extra_workout_wrong_poses_dict,
                 "today_kcal_consumption" : today_kcal_consumption,
                 "day_history_diet" : DayHistoryDiet_Serializer.data,
                 "nutrient" : {
@@ -399,7 +412,7 @@ class DayHistoryWorkoutInfoView(APIView):
         clearworkout_target_lst = []
         Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
 
-        DayHistory_Workout = DayHistoryWorkout.objects.filter(user_id=user, workout_name=Workout_Info, create_date__range=[one_years_ago_date ,date_], is_clear=True)
+        DayHistory_Workout = DayHistoryWorkout.objects.filter(user_id=user, workout_name=Workout_Info, create_date__range=[one_years_ago_date ,date_], is_clear=True, is_extra_workout=False)
 
         length = min(4, len(DayHistory_Workout))
         for i in range(length):

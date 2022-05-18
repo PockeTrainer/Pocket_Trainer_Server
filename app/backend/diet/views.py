@@ -164,3 +164,77 @@ class DietView(APIView):
                 })
         except:
             return Response({"error":"기록 삭제 실패"}, status=400)
+
+def get_food(target, lst):
+    new_lst = []
+    for x in lst:
+        x = round(target/x, 1)
+        new_lst.append(x)
+    return new_lst
+
+def get_g(a, b):
+    new_lst = []
+    for i in range(6):
+        new_lst.append(round(a[i]*b[i]))
+    return new_lst
+
+# 개인별로 각 음식 얼마나 먹어야 하는지 보내주기
+class ExampleDietView(APIView):
+    permission_classes = [AllowAny]
+    def get(self, request, user_id):
+
+        today = datetime.datetime.now().date()
+        
+        user = User.objects.get(id=user_id)
+        DayHistory_UserInfo = DayHistoryUserInfo.objects.get(user_id=user, create_date=today)
+
+        #해달일 섭취해야 하는 칼로리 (목표 칼로리), 탄단지 g
+        target_kcal = DayHistory_UserInfo.target_kcal
+        target_carbohydrate = (target_kcal // 10 * 5) // 4
+        target_protein = (target_kcal // 10 * 3) // 4
+        target_province = (target_kcal // 10 * 2) // 9
+
+        food_carbohydrate = [67.32, 14.36, 31.3, 0.4, 68.95, 21.9]
+        food_carbohydrate_total = [210, 100, 100, 13, 210, 100]
+        #목표 갯수
+        target_food_carbohydrate = get_food(target_carbohydrate, food_carbohydrate)
+        #목표 g
+        target_g_carbohydrate = get_g(target_food_carbohydrate, food_carbohydrate_total)
+
+        food_protein = [6.97, 22.97, 19.6, 30.4, 59.24, 45.4]
+        food_protein_total = [50, 100, 100, 400, 250, 200]
+        #목표 갯수
+        target_food_protein = get_food(target_protein, food_protein)
+        #목표 g
+        target_g_protein = get_g(target_food_protein, food_protein_total)
+
+        food_province = [0.61, 2.61, 40.25, 18.7, 41.2, 9.8]
+        food_province_total = [1, 4, 368.5, 100, 100, 12.7]
+        #목표 갯수
+        target_food_province = get_food(target_province, food_province)
+        #목표 g
+        target_g_province = get_g(target_food_province, food_province_total)
+
+
+        return Response({
+            "code" : "200",
+            "message" : "추천 음식 호출 완료",
+            "rice" : [target_food_carbohydrate[0], target_g_carbohydrate[0], "인분"],
+            "apple" : [target_food_carbohydrate[1], target_g_carbohydrate[1], "개"],
+            "sweetpotato" : [target_food_carbohydrate[2], target_g_carbohydrate[2], "개"],
+            "cherrytomato": [target_food_carbohydrate[3], target_g_carbohydrate[3], "개"],
+            "brownrice": [target_food_carbohydrate[4], target_g_carbohydrate[4], "인분"],
+            "banana": [target_food_carbohydrate[5], target_g_carbohydrate[5], "개"],
+            "egg" : [target_food_protein[0], target_g_protein[0], "개"],
+            "chickenBreast" : [target_food_protein[1], target_g_protein[1], "인분"],
+            "tuna" : [target_food_protein[2], target_g_protein[2], "캔"],
+            "tofu": [target_food_protein[3], target_g_protein[3], "팩"],
+            "mackerel" : [target_food_protein[4], target_g_protein[4], "토막"],
+            "beef": [target_food_protein[5], target_g_protein[5], "인분"],
+            "almond" : [target_food_province[0], target_g_province[0], "개"],
+            "walnut" : [target_food_province[1], target_g_province[1], "알"],
+            "salmon": [target_food_province[2], target_g_province[2], "인분"],
+            "avocado": [target_food_province[3], target_g_province[3], "인분"],
+            "pork": [target_food_province[4], target_g_province[4], "인분"],
+            "macadamia" : [target_food_province[5], target_g_province[5], "종지"],
+        })

@@ -11,6 +11,7 @@ class DayHistoryDiet(models.Model):
     time = models.CharField(null=True, blank=True, max_length=200)
     food_name = models.CharField(null=True, blank=True, max_length=200)
     food_g = models.IntegerField(null=True, blank=True)
+    food_one_meal_g = models.IntegerField(null=True, blank=True)
     food_kcal = models.IntegerField(null=True, blank=True)
     carbohydrate = models.FloatField(null=True, blank=True)
     protein = models.FloatField(null=True, blank=True)

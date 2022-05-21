@@ -44,16 +44,14 @@ class MainPageInfoView(APIView):
             return Response({"error":"mainpage정보(운동) 호출 실패, 체력평가 결과 필요"}, status=400) 
 
         workout_lst = []       # 운동 lst
-        workout_part = set()   # 운동 부위 set
-        
         #오늘의 루틴 기록
         today = datetime.datetime.now().date()
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
         for day_workout in DayHistory_Workout_q:
             workout_lst.append(day_workout.workout_name)
-            workout_part.add(day_workout.workout_name.body_part)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
+        workout_part = []   # 운동 부위 lst
         #운동별 잘못된 자세 출력
         wrong_poses_dict = {}       # 운동별 잘못된 자세 dict
         today_routine_part = {}
@@ -70,6 +68,7 @@ class MainPageInfoView(APIView):
                 today_routine_part[workout.body_part].append(workout_obj.data)
             else:
                 today_routine_part[workout.body_part] = [workout_obj.data]
+                workout_part.append(workout.body_part)
 
         #오늘 소비 칼로리
         today_kcal_consumption = DayHistory_Workout_q.aggregate(Sum('workout_kcal_consumption'))['workout_kcal_consumption__sum']

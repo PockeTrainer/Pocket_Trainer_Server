@@ -44,7 +44,7 @@ class MainPageInfoView(APIView):
             return Response({"error":"mainpage정보(운동) 호출 실패, 체력평가 결과 필요"}, status=400) 
 
         workout_lst = []       # 운동 lst
-        workout_part = set()      # 운동 부위 lst
+        workout_part = set()   # 운동 부위 set
         
         #오늘의 루틴 기록
         today = datetime.datetime.now().date()
@@ -55,13 +55,21 @@ class MainPageInfoView(APIView):
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
         #운동별 잘못된 자세 출력
-        wrong_poses_dict = {} 
+        wrong_poses_dict = {}       # 운동별 잘못된 자세 dict
+        today_routine_part = {}
         for workout in workout_lst:
-            DayHistory_Workout_Wrong_Poses_q = DayHistoryWorkout.objects.get(user_id=user, workout_name = workout, create_date=today).day_history_workout_wrong_poses.values()
+            DayHistory_workout_q = DayHistoryWorkout.objects.get(user_id=user, workout_name = workout, create_date=today) 
+            DayHistory_Workout_Wrong_Poses_q = DayHistory_workout_q.day_history_workout_wrong_poses.values()
    
             wrong_poses_dict[workout.workout_name] = []  
             for dayHistory_wrong_pose in DayHistory_Workout_Wrong_Poses_q:
                 wrong_poses_dict[workout.workout_name].append(dayHistory_wrong_pose['wrong_pose'])
+            
+            workout_obj = DayHistorySerializer(DayHistory_workout_q)
+            if workout.body_part in today_routine_part:
+                today_routine_part[workout.body_part].append(workout_obj.data)
+            else:
+                today_routine_part[workout.body_part] = [workout_obj.data]
 
         #오늘 소비 칼로리
         today_kcal_consumption = DayHistory_Workout_q.aggregate(Sum('workout_kcal_consumption'))['workout_kcal_consumption__sum']
@@ -152,6 +160,7 @@ class MainPageInfoView(APIView):
             "day_history_diet" : DayHistoryDiet_Serializer.data,
             "wrong_poses_dict" : wrong_poses_dict,
             "workout_part" : workout_part,
+            "today_routine_part" : today_routine_part,
             "target_kcal" : target_kcal,
             "today_kcal" : today_kcal,
             "diff_kcal" : diff_kcal,

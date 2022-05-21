@@ -49,7 +49,7 @@ class MainPageInfoView(APIView):
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
         #오늘 소비 칼로리
-        today_kcal_consumption = DayHistoryWorkout.objects.filter(user_id=user, create_date=today).aggregate(Sum('workout_kcal_consumption'))
+        today_kcal_consumption = DayHistory_Workout_q.aggregate(Sum('workout_kcal_consumption'))['workout_kcal_consumption__sum']
 
         if len(DayHistory_Workout_q) == 0:
             return Response({"error":"mainpage정보 호출 실패, 오늘의 루틴 생성 필요"}, status=400)

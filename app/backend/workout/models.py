@@ -9,7 +9,7 @@ class WorkoutInfo(models.Model):
     body_part = models.CharField(null=True, blank=True, max_length=200)
 
     def __str__(self):
-        return self.workout_name
+        return f'{self.body_part}_{self.workout_name}'
 
 #해당 날짜에 사용자의 운동 기록 정보
 class DayHistoryWorkout(models.Model):

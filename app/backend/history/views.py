@@ -58,7 +58,7 @@ class MainPageInfoView(APIView):
         for workout in workout_lst:
             DayHistory_workout_q = DayHistoryWorkout.objects.get(user_id=user, workout_name = workout, create_date=today) 
             DayHistory_Workout_Wrong_Poses_q = DayHistory_workout_q.day_history_workout_wrong_poses.values()
-   
+
             wrong_poses_dict[workout.workout_name] = []  
             for dayHistory_wrong_pose in DayHistory_Workout_Wrong_Poses_q:
                 wrong_poses_dict[workout.workout_name].append(dayHistory_wrong_pose['wrong_pose'])

@@ -174,26 +174,26 @@ class DietView(APIView):
                 "protein" : protein,
                 "province" : province,
 
-                "total" : {
-                    "rice" : [target_food_carbohydrate[0], target_g_carbohydrate[0], "인분"],
-                    "apple" : [target_food_carbohydrate[1], target_g_carbohydrate[1], "개"],
-                    "sweetpotato" : [target_food_carbohydrate[2], target_g_carbohydrate[2], "개"],
-                    "cherrytomato": [target_food_carbohydrate[3], target_g_carbohydrate[3], "개"],
-                    "brownrice": [target_food_carbohydrate[4], target_g_carbohydrate[4], "인분"],
-                    "banana": [target_food_carbohydrate[5], target_g_carbohydrate[5], "개"],
-                    "egg" : [target_food_protein[0], target_g_protein[0], "개"],
-                    "chickenBreast" : [target_food_protein[1], target_g_protein[1], "인분"],
-                    "tuna" : [target_food_protein[2], target_g_protein[2], "캔"],
-                    "tofu": [target_food_protein[3], target_g_protein[3], "팩"],
-                    "mackerel" : [target_food_protein[4], target_g_protein[4], "토막"],
-                    "beef": [target_food_protein[5], target_g_protein[5], "인분"],
-                    "almond" : [target_food_province[0], target_g_province[0], "개"],
-                    "walnut" : [target_food_province[1], target_g_province[1], "알"],
-                    "salmon": [target_food_province[2], target_g_province[2], "인분"],
-                    "avocado": [target_food_province[3], target_g_province[3], "인분"],
-                    "pork": [target_food_province[4], target_g_province[4], "인분"],
-                    "macadamia" : [target_food_province[5], target_g_province[5], "종지"]
-                } 
+                "total":[
+                    {"rice" : [target_food_carbohydrate[0], target_g_carbohydrate[0], "인분"]},
+                    {"apple" : [target_food_carbohydrate[1], target_g_carbohydrate[1], "개"]},
+                    {"sweetpotato" : [target_food_carbohydrate[2], target_g_carbohydrate[2], "개"]},
+                    {"cherrytomato": [target_food_carbohydrate[3], target_g_carbohydrate[3], "개"]},
+                    {"brownrice": [target_food_carbohydrate[4], target_g_carbohydrate[4], "인분"]},
+                    {"banana": [target_food_carbohydrate[5], target_g_carbohydrate[5], "개"]},
+                    {"egg" : [target_food_protein[0], target_g_protein[0], "개"]},
+                    { "chickenBreast" : [target_food_protein[1], target_g_protein[1], "인분"]},
+                    {"tuna" : [target_food_protein[2], target_g_protein[2], "캔"]},
+                    {"tofu": [target_food_protein[3], target_g_protein[3], "팩"]},
+                    {"mackerel" : [target_food_protein[4], target_g_protein[4], "토막"]},
+                    { "beef": [target_food_protein[5], target_g_protein[5], "인분"]},
+                    {"almond" : [target_food_province[0], target_g_province[0], "개"]},
+                    {"walnut" : [target_food_province[1], target_g_province[1], "알"]},
+                    {"salmon": [target_food_province[2], target_g_province[2], "인분"]},
+                    { "avocado": [target_food_province[3], target_g_province[3], "인분"]},
+                    {"pork": [target_food_province[4], target_g_province[4], "인분"]},
+                    {"macadamia" : [target_food_province[5], target_g_province[5], "종지"]}
+                ]
             })
 
     def post(self, request, date, user_id):

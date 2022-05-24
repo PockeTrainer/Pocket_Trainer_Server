@@ -1,9 +1,3 @@
-from cgitb import html
-import email
-from django.contrib.auth.models import Permission
-from django.shortcuts import redirect
-
-from rest_framework import status
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework.authtoken.models import Token
@@ -17,8 +11,6 @@ from rest_framework.permissions import AllowAny, IsAuthenticated
 # Create your views here.
 
 from datetime import datetime
-from django.shortcuts import redirect
-from django.http import JsonResponse
 import requests
 import urllib.request
 import json

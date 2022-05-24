@@ -1,13 +1,9 @@
-from tkinter import W
-from django.shortcuts import render
-
 from rest_framework.views import APIView
 from rest_framework.response import Response
 
 from accounts.models import User, DayHistoryUserInfo
 from .models import DayHistoryDiet
 
-#from .models import dayHistoryUserInfo, dayHistoryWorkout, workoutInfo
 from accounts.serializers import UserSerializer
 from .serializers import DayHistoryDietSerializer
 
@@ -15,7 +11,6 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import AllowAny, IsAuthenticated
 
 import datetime
-# Create your views here.
 
 class CreateTargetKcalView(APIView):
     #authentication_classes = [TokenAuthentication]

@@ -47,8 +47,7 @@ class CreateRoutineView(APIView):
                     biceps_workout = biceps_workouts[biceps_seq]
                     workouts = ["lat_pull_down", "seated_row", "barbell_row", biceps_workout, "cable_push_down", "seated_knees_up"]
                 else:
-                    workouts = ["dumbbell_shoulder_press", "side_lateral_raise", "reverse_pec_dec_fly", "squat", "leg_press", "leg_extension", "plank"]
-                
+                    workouts = ["dumbbell_shoulder_press", "side_lateral_raise", "reverse_pec_dec_fly", "squat", "leg_press", "leg_extension", "plank"]  
                 create_workout(workouts, user, date)
                 
                 return Response({
@@ -96,9 +95,8 @@ class LastTestResultView(APIView):
 
 #체력측정 기록 저장
 class SaveTestResultView(APIView):
-    # authentication_classes = [TokenAuthentication]
-    # permission_classes = [IsAuthenticated]
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def post(self, request, user_id):
         user = User.objects.get(id=user_id)
 
@@ -107,458 +105,459 @@ class SaveTestResultView(APIView):
         if today.month < user.birth.month or (today.month == user.birth.month and today.day < user.birth.day) : 
             age -= 1
         
-        #try:
-        User_TestResult = UserTestResult.objects.create(user_id = user)
-        
-        User_TestResult.pushup_cnt = request.data['pushUp']
-        User_TestResult.situp_cnt = request.data['sitUp']
-        User_TestResult.squat_cnt = request.data['squat']
-        
-        # 남자 pushUp 등급
-        if ("man" in user.gender) :
-            if (age <= 19) :
-                if (int(request.data.get('pushUp')) >= 30) :
-                    User_TestResult.upperbody_strength = 1
-                elif (22 <= int(request.data.get('pushUp')) < 30) :
-                    User_TestResult.upperbody_strength = 2
-                elif (14 <= int(request.data.get('pushUp')) < 22) :
-                    User_TestResult.upperbody_strength = 3
-                elif (6 <= int(request.data.get('pushUp')) < 14) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
+        try:
+            User_TestResult = UserTestResult.objects.create(user_id = user)
+            
+            User_TestResult.pushup_cnt = request.data['pushUp']
+            User_TestResult.situp_cnt = request.data['sitUp']
+            User_TestResult.squat_cnt = request.data['squat']
+            
+            # 남자 pushUp 등급
+            if ("man" in user.gender) :
+                if (age <= 19) :
+                    if (int(request.data.get('pushUp')) >= 30) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (22 <= int(request.data.get('pushUp')) < 30) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (14 <= int(request.data.get('pushUp')) < 22) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (6 <= int(request.data.get('pushUp')) < 14) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
+                    
+                elif (20 <= age <= 35) :
+                    if (int(request.data.get('pushUp')) >= 32) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (24 <= int(request.data.get('pushUp')) < 32) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (16 <= int(request.data.get('pushUp')) < 24) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (8 <= int(request.data.get('pushUp')) < 16) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
+
+                elif (36 <= age <= 49) :
+                    if (int(request.data.get('pushUp')) >= 30) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (22 <= int(request.data.get('pushUp')) < 30) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (14 <= int(request.data.get('pushUp')) < 22) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (6 <= int(request.data.get('pushUp')) < 14) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
                 
-            elif (20 <= age <= 35) :
-                if (int(request.data.get('pushUp')) >= 32) :
-                    User_TestResult.upperbody_strength = 1
-                elif (24 <= int(request.data.get('pushUp')) < 32) :
-                    User_TestResult.upperbody_strength = 2
-                elif (16 <= int(request.data.get('pushUp')) < 24) :
-                    User_TestResult.upperbody_strength = 3
-                elif (8 <= int(request.data.get('pushUp')) < 16) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
+                elif (50 <= age <= 65) :
+                    if (int(request.data.get('pushUp')) >= 28) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (20 <= int(request.data.get('pushUp')) < 28) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (12 <= int(request.data.get('pushUp')) < 20) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (4 <= int(request.data.get('pushUp')) < 12) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
 
-            elif (36 <= age <= 49) :
-                if (int(request.data.get('pushUp')) >= 30) :
-                    User_TestResult.upperbody_strength = 1
-                elif (22 <= int(request.data.get('pushUp')) < 30) :
-                    User_TestResult.upperbody_strength = 2
-                elif (14 <= int(request.data.get('pushUp')) < 22) :
-                    User_TestResult.upperbody_strength = 3
-                elif (6 <= int(request.data.get('pushUp')) < 14) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
-            
-            elif (50 <= age <= 65) :
-                if (int(request.data.get('pushUp')) >= 28) :
-                    User_TestResult.upperbody_strength = 1
-                elif (20 <= int(request.data.get('pushUp')) < 28) :
-                    User_TestResult.upperbody_strength = 2
-                elif (12 <= int(request.data.get('pushUp')) < 20) :
-                    User_TestResult.upperbody_strength = 3
-                elif (4 <= int(request.data.get('pushUp')) < 12) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
+                elif (66 <= age ) :
+                    if (int(request.data.get('pushUp')) >= 26) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (18 <= int(request.data.get('pushUp')) < 26) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (10 <= int(request.data.get('pushUp')) < 18) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (4 <= int(request.data.get('pushUp')) < 10) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
+            # 여자 pushUp 등급
+            elif ("woman" in user.gender) :
+                if (age <= 19) :
+                    if (int(request.data.get('pushUp')) >= 16) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (12 <= int(request.data.get('pushUp')) < 16) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (8 <= int(request.data.get('pushUp')) < 12) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (4 <= int(request.data.get('pushUp')) < 8) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
+                    
+                elif (20 <= age <= 35) :
+                    if (int(request.data.get('pushUp')) >= 20) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (16 <= int(request.data.get('pushUp')) < 20) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (12 <= int(request.data.get('pushUp')) < 16) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (8 <= int(request.data.get('pushUp')) < 12) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
 
-            elif (66 <= age ) :
-                if (int(request.data.get('pushUp')) >= 26) :
-                    User_TestResult.upperbody_strength = 1
-                elif (18 <= int(request.data.get('pushUp')) < 26) :
-                    User_TestResult.upperbody_strength = 2
-                elif (10 <= int(request.data.get('pushUp')) < 18) :
-                    User_TestResult.upperbody_strength = 3
-                elif (4 <= int(request.data.get('pushUp')) < 10) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
-        # 여자 pushUp 등급
-        elif ("woman" in user.gender) :
-            if (age <= 19) :
-                if (int(request.data.get('pushUp')) >= 16) :
-                    User_TestResult.upperbody_strength = 1
-                elif (12 <= int(request.data.get('pushUp')) < 16) :
-                    User_TestResult.upperbody_strength = 2
-                elif (8 <= int(request.data.get('pushUp')) < 12) :
-                    User_TestResult.upperbody_strength = 3
-                elif (4 <= int(request.data.get('pushUp')) < 8) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
+                elif (36 <= age <= 49) :
+                    if (int(request.data.get('pushUp')) >= 18) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (14 <= int(request.data.get('pushUp')) < 18) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (10 <= int(request.data.get('pushUp')) < 14) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (4 <= int(request.data.get('pushUp')) < 10) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
                 
-            elif (20 <= age <= 35) :
-                if (int(request.data.get('pushUp')) >= 20) :
-                    User_TestResult.upperbody_strength = 1
-                elif (16 <= int(request.data.get('pushUp')) < 20) :
-                    User_TestResult.upperbody_strength = 2
-                elif (12 <= int(request.data.get('pushUp')) < 16) :
-                    User_TestResult.upperbody_strength = 3
-                elif (8 <= int(request.data.get('pushUp')) < 12) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
+                elif (50 <= age <= 65) :
+                    if (int(request.data.get('pushUp')) >= 18) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (14 <= int(request.data.get('pushUp')) < 18) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (10 <= int(request.data.get('pushUp')) < 14) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (4 <= int(request.data.get('pushUp')) < 10) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
 
-            elif (36 <= age <= 49) :
-                if (int(request.data.get('pushUp')) >= 18) :
-                    User_TestResult.upperbody_strength = 1
-                elif (14 <= int(request.data.get('pushUp')) < 18) :
-                    User_TestResult.upperbody_strength = 2
-                elif (10 <= int(request.data.get('pushUp')) < 14) :
-                    User_TestResult.upperbody_strength = 3
-                elif (4 <= int(request.data.get('pushUp')) < 10) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
+                elif (66 <= age ) :
+                    if (int(request.data.get('pushUp')) >= 16) :
+                        User_TestResult.upperbody_strength = 1
+                    elif (12 <= int(request.data.get('pushUp')) < 16) :
+                        User_TestResult.upperbody_strength = 2
+                    elif (8 <= int(request.data.get('pushUp')) < 12) :
+                        User_TestResult.upperbody_strength = 3
+                    elif (4 <= int(request.data.get('pushUp')) < 8) :
+                        User_TestResult.upperbody_strength = 4
+                    else :
+                        User_TestResult.upperbody_strength = 5
+
             
-            elif (50 <= age <= 65) :
-                if (int(request.data.get('pushUp')) >= 18) :
-                    User_TestResult.upperbody_strength = 1
-                elif (14 <= int(request.data.get('pushUp')) < 18) :
-                    User_TestResult.upperbody_strength = 2
-                elif (10 <= int(request.data.get('pushUp')) < 14) :
-                    User_TestResult.upperbody_strength = 3
-                elif (4 <= int(request.data.get('pushUp')) < 10) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
+            # 남자 윗몸 등급
+            if ("man" in user.gender) :
+                if (19 >= age) :
+                    if (int(request.data.get('sitUp')) >= 35) :
+                        User_TestResult.stomach_strength = 1
+                    elif (27 <= int(request.data.get('sitUp')) < 35) :
+                        User_TestResult.stomach_strength = 2
+                    elif (19 <= int(request.data.get('sitUp')) < 27) :
+                        User_TestResult.stomach_strength = 3
+                    elif (11 <= int(request.data.get('sitUp')) < 19) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
 
-            elif (66 <= age ) :
-                if (int(request.data.get('pushUp')) >= 16) :
-                    User_TestResult.upperbody_strength = 1
-                elif (12 <= int(request.data.get('pushUp')) < 16) :
-                    User_TestResult.upperbody_strength = 2
-                elif (8 <= int(request.data.get('pushUp')) < 12) :
-                    User_TestResult.upperbody_strength = 3
-                elif (4 <= int(request.data.get('pushUp')) < 8) :
-                    User_TestResult.upperbody_strength = 4
-                else :
-                    User_TestResult.upperbody_strength = 5
+                if (20 <= age <= 35) :
+                    if (int(request.data.get('sitUp')) >= 37) :
+                        User_TestResult.stomach_strength = 1
+                    elif (29 <= int(request.data.get('sitUp')) < 37) :
+                        User_TestResult.stomach_strength = 2
+                    elif (21 <= int(request.data.get('sitUp')) < 29) :
+                        User_TestResult.stomach_strength = 3
+                    elif (13 <= int(request.data.get('sitUp')) < 21) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
+                        
+                if (36 <= age <= 49) :
+                    if (int(request.data.get('sitUp')) >= 35) :
+                        User_TestResult.stomach_strength = 1
+                    elif (27 <= int(request.data.get('sitUp')) < 35) :
+                        User_TestResult.stomach_strength = 2
+                    elif (19 <= int(request.data.get('sitUp')) < 27) :
+                        User_TestResult.stomach_strength = 3
+                    elif (11 <= int(request.data.get('sitUp')) < 19) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
 
-        
-        # 남자 윗몸 등급
-        if ("man" in user.gender) :
-            if (19 >= age) :
-                if (int(request.data.get('sitUp')) >= 35) :
-                    User_TestResult.stomach_strength = 1
-                elif (27 <= int(request.data.get('sitUp')) < 35) :
-                    User_TestResult.stomach_strength = 2
-                elif (19 <= int(request.data.get('sitUp')) < 27) :
-                    User_TestResult.stomach_strength = 3
-                elif (11 <= int(request.data.get('sitUp')) < 19) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
+                        
+                if (50 <= age <= 65) :
+                    if (int(request.data.get('sitUp')) >= 33) :
+                        User_TestResult.stomach_strength = 1
+                    elif (25 <= int(request.data.get('sitUp')) < 33) :
+                        User_TestResult.stomach_strength = 2
+                    elif (17 <= int(request.data.get('sitUp')) < 25) :
+                        User_TestResult.stomach_strength = 3
+                    elif (9 <= int(request.data.get('sitUp')) < 17) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
+                
+                if (66 <= age) :
+                    if (int(request.data.get('sitUp')) >= 31) :
+                        User_TestResult.stomach_strength = 1
+                    elif (23 <= int(request.data.get('sitUp')) < 31) :
+                        User_TestResult.stomach_strength = 2
+                    elif (15 <= int(request.data.get('sitUp')) < 23) :
+                        User_TestResult.stomach_strength = 3
+                    elif (7 <= int(request.data.get('sitUp')) < 15) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
+            # 여자 윗몸 등급
+            elif ("woman" in user.gender) :
+                if (19 >= age) :
+                    if (int(request.data.get('sitUp')) >= 31) :
+                        User_TestResult.stomach_strength = 1
+                    elif (23 <= int(request.data.get('sitUp')) < 31) :
+                        User_TestResult.stomach_strength = 2
+                    elif (15 <= int(request.data.get('sitUp')) < 23) :
+                        User_TestResult.stomach_strength = 3
+                    elif (7 <= int(request.data.get('sitUp')) < 15) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
 
-            if (20 <= age <= 35) :
-                if (int(request.data.get('sitUp')) >= 37) :
-                    User_TestResult.stomach_strength = 1
-                elif (29 <= int(request.data.get('sitUp')) < 37) :
-                    User_TestResult.stomach_strength = 2
-                elif (21 <= int(request.data.get('sitUp')) < 29) :
-                    User_TestResult.stomach_strength = 3
-                elif (13 <= int(request.data.get('sitUp')) < 21) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
-                    
-            if (36 <= age <= 49) :
-                if (int(request.data.get('sitUp')) >= 35) :
-                    User_TestResult.stomach_strength = 1
-                elif (27 <= int(request.data.get('sitUp')) < 35) :
-                    User_TestResult.stomach_strength = 2
-                elif (19 <= int(request.data.get('sitUp')) < 27) :
-                    User_TestResult.stomach_strength = 3
-                elif (11 <= int(request.data.get('sitUp')) < 19) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
+                if (20 <= age <= 35) :
+                    if (int(request.data.get('sitUp')) >= 29) :
+                        User_TestResult.stomach_strength = 1
+                    elif (21 <= int(request.data.get('sitUp')) < 29) :
+                        User_TestResult.stomach_strength = 2
+                    elif (13 <= int(request.data.get('sitUp')) < 21) :
+                        User_TestResult.stomach_strength = 3
+                    elif (5 <= int(request.data.get('sitUp')) < 13) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
+                        
+                if (36 <= age <= 49) :
+                    if (int(request.data.get('sitUp')) >= 29) :
+                        User_TestResult.stomach_strength = 1
+                    elif (21 <= int(request.data.get('sitUp')) < 29) :
+                        User_TestResult.stomach_strength = 2
+                    elif (13 <= int(request.data.get('sitUp')) < 21) :
+                        User_TestResult.stomach_strength = 3
+                    elif (5 <= int(request.data.get('sitUp')) < 13) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
 
-                    
-            if (50 <= age <= 65) :
-                if (int(request.data.get('sitUp')) >= 33) :
-                    User_TestResult.stomach_strength = 1
-                elif (25 <= int(request.data.get('sitUp')) < 33) :
-                    User_TestResult.stomach_strength = 2
-                elif (17 <= int(request.data.get('sitUp')) < 25) :
-                    User_TestResult.stomach_strength = 3
-                elif (9 <= int(request.data.get('sitUp')) < 17) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
+                        
+                if (50 <= age <= 65) :
+                    if (int(request.data.get('sitUp')) >= 27) :
+                        User_TestResult.stomach_strength = 1
+                    elif (19 <= int(request.data.get('sitUp')) < 27) :
+                        User_TestResult.stomach_strength = 2
+                    elif (11 <= int(request.data.get('sitUp')) < 19) :
+                        User_TestResult.stomach_strength = 3
+                    elif (4 <= int(request.data.get('sitUp')) < 11) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
+                
+                if (66 <= age) :
+                    if (int(request.data.get('sitUp')) >= 27) :
+                        User_TestResult.stomach_strength = 1
+                    elif (19 <= int(request.data.get('sitUp')) < 27) :
+                        User_TestResult.stomach_strength = 2
+                    elif (11 <= int(request.data.get('sitUp')) < 19) :
+                        User_TestResult.stomach_strength = 3
+                    elif (4 <= int(request.data.get('sitUp')) < 11) :
+                        User_TestResult.stomach_strength = 4
+                    else :
+                        User_TestResult.stomach_strength = 5
+
+            # 남자 스쿼트 등급
+            if ("man" in user.gender) :
+                if (19 >= age) :
+                    if (int(request.data.get('squat')) >= 40) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (30 <= int(request.data.get('squat')) < 40) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (20 <= int(request.data.get('squat')) < 30) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (10 <= int(request.data.get('squat')) < 20) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+
+                if (20 <= age <= 35) :
+                    if (int(request.data.get('squat')) >= 45) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (35 <= int(request.data.get('squat')) < 45) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (25 <= int(request.data.get('squat')) < 35) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (15 <= int(request.data.get('squat')) < 25) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+
+                if (36 <= age <= 49) :
+                    if (int(request.data.get('squat')) >= 45) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (35 <= int(request.data.get('squat')) < 45) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (25 <= int(request.data.get('squat')) < 35) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (15 <= int(request.data.get('squat')) < 25) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+
+                if (50 <= age <= 65) :
+                    if (int(request.data.get('squat')) >= 40) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (30 <= int(request.data.get('squat')) < 40) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (20 <= int(request.data.get('squat')) < 30) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (10 <= int(request.data.get('squat')) < 20) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+                
+                if (66 <= age) :
+                    if (int(request.data.get('squat')) >= 35) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (25 <= int(request.data.get('squat')) < 35) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (15 <= int(request.data.get('squat')) < 25) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (6 <= int(request.data.get('squat')) < 15) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+
+            # 여자 스쿼트 등급
+            if ("woman" in user.gender) :
+                if (19 >= age) :
+                    if (int(request.data.get('squat')) >= 40) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (30 <= int(request.data.get('squat')) < 40) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (20 <= int(request.data.get('squat')) < 30) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (10 <= int(request.data.get('squat')) < 20) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+
+                if (20 <= age <= 35) :
+                    if (int(request.data.get('squat')) >= 40) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (30 <= int(request.data.get('squat')) < 40) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (20 <= int(request.data.get('squat')) < 30) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (10 <= int(request.data.get('squat')) < 20) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+
+                if (36 <= age <= 49) :
+                    if (int(request.data.get('squat')) >= 40) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (30 <= int(request.data.get('squat')) < 40) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (20 <= int(request.data.get('squat')) < 30) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (10 <= int(request.data.get('squat')) < 20) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+
+                if (50 <= age <= 65) :
+                    if (int(request.data.get('squat')) >= 35) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (25 <= int(request.data.get('squat')) < 35) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (15 <= int(request.data.get('squat')) < 25) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (6 <= int(request.data.get('squat')) < 15) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
+                
+                if (66 <= age) :
+                    if (int(request.data.get('squat')) >= 35) :
+                        User_TestResult.lowerbody_strength = 1
+                    elif (25 <= int(request.data.get('squat')) < 35) :
+                        User_TestResult.lowerbody_strength = 2
+                    elif (15 <= int(request.data.get('squat')) < 25) :
+                        User_TestResult.lowerbody_strength = 3
+                    elif (6 <= int(request.data.get('squat')) < 15) :
+                        User_TestResult.lowerbody_strength = 4
+                    else :
+                        User_TestResult.lowerbody_strength = 5
             
-            if (66 <= age) :
-                if (int(request.data.get('sitUp')) >= 31) :
-                    User_TestResult.stomach_strength = 1
-                elif (23 <= int(request.data.get('sitUp')) < 31) :
-                    User_TestResult.stomach_strength = 2
-                elif (15 <= int(request.data.get('sitUp')) < 23) :
-                    User_TestResult.stomach_strength = 3
-                elif (7 <= int(request.data.get('sitUp')) < 15) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
-        # 여자 윗몸 등급
-        elif ("woman" in user.gender) :
-            if (19 >= age) :
-                if (int(request.data.get('sitUp')) >= 31) :
-                    User_TestResult.stomach_strength = 1
-                elif (23 <= int(request.data.get('sitUp')) < 31) :
-                    User_TestResult.stomach_strength = 2
-                elif (15 <= int(request.data.get('sitUp')) < 23) :
-                    User_TestResult.stomach_strength = 3
-                elif (7 <= int(request.data.get('sitUp')) < 15) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
+            User_TestResult.save()
 
-            if (20 <= age <= 35) :
-                if (int(request.data.get('sitUp')) >= 29) :
-                    User_TestResult.stomach_strength = 1
-                elif (21 <= int(request.data.get('sitUp')) < 29) :
-                    User_TestResult.stomach_strength = 2
-                elif (13 <= int(request.data.get('sitUp')) < 21) :
-                    User_TestResult.stomach_strength = 3
-                elif (5 <= int(request.data.get('sitUp')) < 13) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
-                    
-            if (36 <= age <= 49) :
-                if (int(request.data.get('sitUp')) >= 29) :
-                    User_TestResult.stomach_strength = 1
-                elif (21 <= int(request.data.get('sitUp')) < 29) :
-                    User_TestResult.stomach_strength = 2
-                elif (13 <= int(request.data.get('sitUp')) < 21) :
-                    User_TestResult.stomach_strength = 3
-                elif (5 <= int(request.data.get('sitUp')) < 13) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
-
-                    
-            if (50 <= age <= 65) :
-                if (int(request.data.get('sitUp')) >= 27) :
-                    User_TestResult.stomach_strength = 1
-                elif (19 <= int(request.data.get('sitUp')) < 27) :
-                    User_TestResult.stomach_strength = 2
-                elif (11 <= int(request.data.get('sitUp')) < 19) :
-                    User_TestResult.stomach_strength = 3
-                elif (4 <= int(request.data.get('sitUp')) < 11) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
+            #UserWorkoutInfo 테이블 update or create (운동 루틴, 각 운동별 무게 추천)
+            #등급으로 각 운동별 추천 무게 설정
+            for workout in WorkoutInfo.objects.all():
+                created = create_target(workout, user)
             
-            if (66 <= age) :
-                if (int(request.data.get('sitUp')) >= 27) :
-                    User_TestResult.stomach_strength = 1
-                elif (19 <= int(request.data.get('sitUp')) < 27) :
-                    User_TestResult.stomach_strength = 2
-                elif (11 <= int(request.data.get('sitUp')) < 19) :
-                    User_TestResult.stomach_strength = 3
-                elif (4 <= int(request.data.get('sitUp')) < 11) :
-                    User_TestResult.stomach_strength = 4
-                else :
-                    User_TestResult.stomach_strength = 5
+            if created:
+                UserWorkoutRoutine.objects.create(
+                    user_id= user, 
+                    workout_routine = 0,
+                    triceps_seq = 0,
+                    biceps_seq = 0
+                )
 
-        # 남자 스쿼트 등급
-        if ("man" in user.gender) :
-            if (19 >= age) :
-                if (int(request.data.get('squat')) >= 40) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (30 <= int(request.data.get('squat')) < 40) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (20 <= int(request.data.get('squat')) < 30) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (10 <= int(request.data.get('squat')) < 20) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-
-            if (20 <= age <= 35) :
-                if (int(request.data.get('squat')) >= 45) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (35 <= int(request.data.get('squat')) < 45) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (25 <= int(request.data.get('squat')) < 35) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (15 <= int(request.data.get('squat')) < 25) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-
-            if (36 <= age <= 49) :
-                if (int(request.data.get('squat')) >= 45) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (35 <= int(request.data.get('squat')) < 45) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (25 <= int(request.data.get('squat')) < 35) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (15 <= int(request.data.get('squat')) < 25) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-
-            if (50 <= age <= 65) :
-                if (int(request.data.get('squat')) >= 40) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (30 <= int(request.data.get('squat')) < 40) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (20 <= int(request.data.get('squat')) < 30) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (10 <= int(request.data.get('squat')) < 20) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-            
-            if (66 <= age) :
-                if (int(request.data.get('squat')) >= 35) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (25 <= int(request.data.get('squat')) < 35) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (15 <= int(request.data.get('squat')) < 25) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (6 <= int(request.data.get('squat')) < 15) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-
-        # 여자 스쿼트 등급
-        if ("woman" in user.gender) :
-            if (19 >= age) :
-                if (int(request.data.get('squat')) >= 40) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (30 <= int(request.data.get('squat')) < 40) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (20 <= int(request.data.get('squat')) < 30) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (10 <= int(request.data.get('squat')) < 20) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-
-            if (20 <= age <= 35) :
-                if (int(request.data.get('squat')) >= 40) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (30 <= int(request.data.get('squat')) < 40) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (20 <= int(request.data.get('squat')) < 30) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (10 <= int(request.data.get('squat')) < 20) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-
-            if (36 <= age <= 49) :
-                if (int(request.data.get('squat')) >= 40) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (30 <= int(request.data.get('squat')) < 40) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (20 <= int(request.data.get('squat')) < 30) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (10 <= int(request.data.get('squat')) < 20) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-
-            if (50 <= age <= 65) :
-                if (int(request.data.get('squat')) >= 35) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (25 <= int(request.data.get('squat')) < 35) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (15 <= int(request.data.get('squat')) < 25) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (6 <= int(request.data.get('squat')) < 15) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-            
-            if (66 <= age) :
-                if (int(request.data.get('squat')) >= 35) :
-                    User_TestResult.lowerbody_strength = 1
-                elif (25 <= int(request.data.get('squat')) < 35) :
-                    User_TestResult.lowerbody_strength = 2
-                elif (15 <= int(request.data.get('squat')) < 25) :
-                    User_TestResult.lowerbody_strength = 3
-                elif (6 <= int(request.data.get('squat')) < 15) :
-                    User_TestResult.lowerbody_strength = 4
-                else :
-                    User_TestResult.lowerbody_strength = 5
-        
-        User_TestResult.save()
-
-        #UserWorkoutInfo 테이블 update or create (운동 루틴, 각 운동별 무게 추천)
-        #등급으로 각 운동별 추천 무게 설정
-        for workout in WorkoutInfo.objects.all():
-            workout_name = workout.workout_name
-            created = create_target(workout_name, user)
-        
-        if created:
-            UserWorkoutRoutine.objects.create(
-                user_id= user, 
-                workout_routine = 0,
-                triceps_seq = 0,
-                biceps_seq = 0
-            )
-
-        return Response({
-                "code" : 200,
-                "message" : "체력평가 기록 저장 완료"
-            })
-        #except:
-        #    return Response({"error":"체력평가 기록 저장 실패."}, status=400)
+            return Response({
+                    "code" : 200,
+                    "message" : "체력평가 기록 저장 완료"
+                })
+        except:
+            return Response({"error":"체력평가 기록 저장 실패."}, status=400)
 
 #오늘의 루틴 정보 호출
 class TodayRoutineView(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, user_id):
-#       try:
-        user = User.objects.get(id=user_id)
-
-        #오늘의 루틴 기록
-        today = datetime.datetime.now().date()
-        DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
-        DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)    
-
         try:
-            User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)
-            
-            # routine : 오늘 루틴 순서
-            # 오늘 운동 수행 x -> 오늘 루틴
-            if (User_WorkoutRoutine.last_routine0_date != today 
-                    and User_WorkoutRoutine.last_routine1_date != today
-                    and User_WorkoutRoutine.last_routine2_date != today):
-                routine = User_WorkoutRoutine.workout_routine
-            # 오늘 운동 수행 o -> -1 루틴
-            else:
-                routine = (User_WorkoutRoutine.workout_routine+2) % 3
+            user = User.objects.get(id=user_id)
 
-            # 루틴 생성 완료 상태
-            if routine == 0:
-                last_routine_date = User_WorkoutRoutine.last_routine0_date
-            elif routine == 1:
-                last_routine_date = User_WorkoutRoutine.last_routine1_date
-            elif routine == 2:
-                last_routine_date = User_WorkoutRoutine.last_routine2_date
+            #오늘의 루틴 기록
+            today = datetime.datetime.now().date()
+            DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
+            DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)    
 
-        # 아직 체력 평가 X 상태
-        except UserWorkoutRoutine.DoesNotExist:
-            last_routine_date = None
+            try:
+                User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)
+                
+                # routine : 오늘 루틴 순서
+                # 오늘 운동 수행 x -> 오늘 루틴
+                if (User_WorkoutRoutine.last_routine0_date != today 
+                        and User_WorkoutRoutine.last_routine1_date != today
+                        and User_WorkoutRoutine.last_routine2_date != today):
+                    routine = User_WorkoutRoutine.workout_routine
+                # 오늘 운동 수행 o -> -1 루틴
+                else:
+                    routine = (User_WorkoutRoutine.workout_routine+2) % 3
 
-        return Response({
-                    "code" : 200,
-                    "message" : "오늘의 루틴 페이지 정보 호출 완료",
-                    "todayRoutine" : DayHistoryWorkout_Serializer.data,
-                    "last_routine_date" : last_routine_date
-                })
-#3        except:
- #           return Response({"error":"오늘의 루틴 페이지 정보 호출 실패."}, status=400)
+                # 루틴 생성 완료 상태
+                if routine == 0:
+                    last_routine_date = User_WorkoutRoutine.last_routine0_date
+                elif routine == 1:
+                    last_routine_date = User_WorkoutRoutine.last_routine1_date
+                elif routine == 2:
+                    last_routine_date = User_WorkoutRoutine.last_routine2_date
+
+            # 아직 체력 평가 X 상태
+            except UserWorkoutRoutine.DoesNotExist:
+                last_routine_date = None
+
+            return Response({
+                        "code" : 200,
+                        "message" : "오늘의 루틴 페이지 정보 호출 완료",
+                        "todayRoutine" : DayHistoryWorkout_Serializer.data,
+                        "last_routine_date" : last_routine_date
+                    })
+        except:
+            return Response({"error":"오늘의 루틴 페이지 정보 호출 실패."}, status=400)
 
 #운동측정 전 무게 or 갯수 or 시간 호출 
 class GetUserWorkoutInfo(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def get(self, request, workout, user_id):
         is_first = False    #해당 운동 처음 하는지(무게 추천)
         try:
@@ -589,7 +588,8 @@ class GetUserWorkoutInfo(APIView):
 
 #운동측정 전 무게 or 갯수 or 시간 조절 
 class ChangeUserWorkoutInfo(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def put(self, request, workout, date, user_id):
         try:
             user = User.objects.get(id=user_id)
@@ -623,7 +623,8 @@ class ChangeUserWorkoutInfo(APIView):
 
 #운동 시작 시간 저장
 class SaveStartDateTimeView(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def post(self, request, workout, date, user_id):
         try:
             user = User.objects.get(id=user_id)
@@ -645,7 +646,8 @@ class SaveStartDateTimeView(APIView):
 
 #운동 종료 시간 저장
 class SaveEndDateTimetView(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def post(self, request, workout, date, user_id):
         try:
             user = User.objects.get(id=user_id)
@@ -667,88 +669,78 @@ class SaveEndDateTimetView(APIView):
             
 #운동측정 기록 update
 class WorkoutResultView(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def put(self, request, workout, date, user_id):
-        # try:
-        user = User.objects.get(id=user_id)
-        Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
+        try:
+            user = User.objects.get(id=user_id)
+            Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
 
-        DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
-        DayHistory_Workout.workout_set = request.data['workout_set']
-        DayHistory_Workout.workout_time = request.data['workout_time']
+            DayHistory_Workout = DayHistoryWorkout.objects.get(user_id=user, create_date=date, workout_name=Workout_Info)
+            DayHistory_Workout.workout_set = request.data['workout_set']
+            DayHistory_Workout.workout_time = request.data['workout_time']
 
-        # 운동 소모 칼로리  = (운동 시간) * (분당 해당운동 소모 칼로리)
-        time_str = DayHistory_Workout.workout_time
-        time_format = "%H:%M:%S"
-        time = datetime.datetime.strptime(time_str, time_format)
+            # 운동 소모 칼로리  = (운동 시간) * (분당 해당운동 소모 칼로리)
+            time_str = DayHistory_Workout.workout_time
+            time_format = "%H:%M:%S"
+            time = datetime.datetime.strptime(time_str, time_format)
 
-        time = datetime.timedelta(hours=time.hour,minutes=time.minute,seconds=time.second)
-        seconds = time.total_seconds()
-        sec_to_min = seconds / 60
-        DayHistory_Workout.workout_kcal_consumption = round(sec_to_min * Workout_Info.workout_kcal, 1)
+            time = datetime.timedelta(hours=time.hour,minutes=time.minute,seconds=time.second)
+            seconds = time.total_seconds()
+            sec_to_min = seconds / 60
+            DayHistory_Workout.workout_kcal_consumption = round(sec_to_min * Workout_Info.workout_kcal, 1)
 
-        User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)    
+            User_WorkoutRoutine = UserWorkoutRoutine.objects.get(user_id = user)    
 
-        # 해당 운동 잘못된 자세 넘어오면 테이블에 저장
-        if ('wrong_poses' in request.data):
-            wrong_poses_lst = list(request.data['wrong_poses'].split(','))
-            wrong_poses_lst = [wrong_pose.lstrip() for wrong_pose in wrong_poses_lst]
-            for wrong_pose in wrong_poses_lst:
-                DayHistoryWorkoutWrongPoses.objects.get_or_create(dayHistoryWorkout_id=DayHistory_Workout, wrong_pose=wrong_pose)
+            # 해당 운동 잘못된 자세 넘어오면 테이블에 저장
+            if ('wrong_poses' in request.data):
+                wrong_poses_lst = list(request.data['wrong_poses'].split(','))
+                wrong_poses_lst = [wrong_pose.lstrip() for wrong_pose in wrong_poses_lst]
+                for wrong_pose in wrong_poses_lst:
+                    DayHistoryWorkoutWrongPoses.objects.get_or_create(dayHistoryWorkout_id=DayHistory_Workout, wrong_pose=wrong_pose)
 
-        # 아직 완료하지 않은 운동이고 해당 운동이 마지막 세트면 
-        if (not DayHistory_Workout.is_clear and int(request.data['workout_set']) == 5) :
-            #해당 운동 is_clear => True 
-            DayHistory_Workout.is_clear = True
+            # 아직 완료하지 않은 운동이고 해당 운동이 마지막 세트면 
+            if (not DayHistory_Workout.is_clear and int(request.data['workout_set']) == 5) :
+                #해당 운동 is_clear => True 
+                DayHistory_Workout.is_clear = True
+                DayHistory_Workout.save()
+
+                #삼두 운동이면 삼두 순서+1
+                if (workout in ['cable_push_down', 'lying_triceps_extension', 'dumbbell_kickback']):
+                    User_WorkoutRoutine.triceps_seq = (User_WorkoutRoutine.triceps_seq+1) % 3
+                #이두 운동이면 이두 순서+1    
+                elif (workout in ['easy_bar_curl', 'arm_curl', 'hammer_curl']):
+                    User_WorkoutRoutine.biceps_seq = (User_WorkoutRoutine.biceps_seq+1) % 3
+
+                today_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
+                cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date, is_clear=True)
+                percentage = len(cleared_workout) / len(today_workout)
+
+                # 아직 오늘 루틴 갱신X  &  오늘 clear 운동 50% 이상 -> 최근 루틴 완료 날짜 갱신, 루틴 + 1
+                routine = User_WorkoutRoutine.workout_routine
+                if is_today_routine_clear(User_WorkoutRoutine, date, percentage):
+                    if (routine == 0):
+                        User_WorkoutRoutine.last_routine0_date = date
+                    elif (routine == 1):
+                        User_WorkoutRoutine.last_routine1_date = date
+                    elif (routine == 2):
+                        User_WorkoutRoutine.last_routine2_date = date
+                User_WorkoutRoutine.workout_routine = (routine+1)%3
+
             DayHistory_Workout.save()
+            User_WorkoutRoutine.save()
 
-            #삼두 운동이면 삼두 순서+1
-            if (workout in ['cable_push_down', 'lying_triceps_extension', 'dumbbell_kickback']):
-                User_WorkoutRoutine.triceps_seq = (User_WorkoutRoutine.triceps_seq+1) % 3
-            #이두 운동이면 이두 순서+1    
-            elif (workout in ['easy_bar_curl', 'arm_curl', 'hammer_curl']):
-                User_WorkoutRoutine.biceps_seq = (User_WorkoutRoutine.biceps_seq+1) % 3
-
-            today_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date)
-            cleared_workout = DayHistoryWorkout.objects.filter(user_id=user, create_date=date, is_clear=True)
-            percentage = len(cleared_workout) / len(today_workout)
-
-            # 아직 오늘 루틴 갱신X  &  오늘 clear 운동 50% 이상 -> 최근 루틴 완료 날짜 갱신, 루틴 + 1
-            if (User_WorkoutRoutine.workout_routine == 0):
-                if (User_WorkoutRoutine.last_routine0_date != date 
-                    and User_WorkoutRoutine.last_routine1_date != date
-                    and User_WorkoutRoutine.last_routine2_date != date
-                    and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine0_date = date
-                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
-            elif (User_WorkoutRoutine.workout_routine == 1):
-                if (User_WorkoutRoutine.last_routine0_date != date 
-                    and User_WorkoutRoutine.last_routine1_date != date
-                    and User_WorkoutRoutine.last_routine2_date != date
-                    and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine1_date = date
-                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
-            elif (User_WorkoutRoutine.workout_routine == 2):
-                if (User_WorkoutRoutine.last_routine0_date != date 
-                    and User_WorkoutRoutine.last_routine1_date != date
-                    and User_WorkoutRoutine.last_routine2_date != date
-                    and percentage >= 0.5):
-                    User_WorkoutRoutine.last_routine2_date = date
-                    User_WorkoutRoutine.workout_routine = (User_WorkoutRoutine.workout_routine+1)%3
-
-        DayHistory_Workout.save()
-        User_WorkoutRoutine.save()
-
-        return Response({
-                    "code" : 200,
-                    "message" : "운동 기록 저장 완료",
-            })
-        # except:
-        #     return Response({"error" : "운동 기록 저장 실패"}, status=400)
+            return Response({
+                        "code" : 200,
+                        "message" : "운동 기록 저장 완료",
+                })
+        except:
+            return Response({"error" : "운동 기록 저장 실패"}, status=400)
 
 #운동측정 후 피드백 반영
 class WorkoutFeedbackView(APIView):
-    permission_classes = [AllowAny]
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
     def put(self, request, workout, user_id):
         try:
             user = User.objects.get(id=user_id)
@@ -768,7 +760,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 1) > 0:
                         User_WorkoutInfo.target_kg -= 1       
                     else:
-                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=409)
             #원형 추 사용
             elif (workout in ['bench_press', 'incline_press', 'easy_bar_curl', 'squat', 'leg_press']):
                 # 가벼움
@@ -779,7 +771,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 5) > 0:
                         User_WorkoutInfo.target_kg -= 5       
                     else:
-                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)     
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=409)     
             #머신 사용 (단위: 파운드)
             elif (workout in ['pec_dec_fly', 'lat_pull_down', 'seated_row', 'reverse_pec_dec_fly', 'cable_push_down', 'arm_curl', 'leg_extension']):
                 # 가벼움
@@ -790,7 +782,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_kg - 5) > 0:
                         User_WorkoutInfo.target_kg -= 5       
                     else:
-                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)          
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=409)          
             #횟수 조정
             elif (workout in ['crunch', 'seated_knees_up']):
                 # 쉬움
@@ -801,7 +793,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_cnt - 2) > 0:
                         User_WorkoutInfo.target_cnt -= 2       
                     else:
-                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)  
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=409)  
             #시간 조정
             elif (workout in ['plank']):
                 # 쉬움
@@ -812,7 +804,7 @@ class WorkoutFeedbackView(APIView):
                     if (User_WorkoutInfo.target_time - "00:00:10") > 0:
                         User_WorkoutInfo.target_time -= "00:00:10"       
                     else:
-                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=400)                      
+                        return Response({"error" : "feedback 반영 실패, 현재 최소"}, status=409)                      
 
             User_WorkoutInfo.save()
 
@@ -839,14 +831,21 @@ def create_workout(workouts, user, date):
 
 def create_target(workout, user):
     User_WorkoutInfo, created = UserWorkoutInfo.objects.update_or_create(user_id = user, workout_name = workout)
-
-    if workout in ["crunch", "seated_knees_up"]: 
-        print(workout)
+    workout_name = workout.workout_name
+    if workout_name in ["crunch", "seated_knees_up"]: 
         User_WorkoutInfo.target_cnt  = CNT
-    elif workout in ["plank"]:
+    elif workout_name in ["plank"]:
         User_WorkoutInfo.target_time = TIME
     else:
         User_WorkoutInfo.target_kg = KG
     
     User_WorkoutInfo.save()
     return created
+
+def is_today_routine_clear(User_WorkoutRoutine, date, percentage):
+    if (User_WorkoutRoutine.last_routine0_date != date
+        and User_WorkoutRoutine.last_routine1_date != date
+        and User_WorkoutRoutine.last_routine2_date != date
+        and percentage >= 0.5):
+        return True
+    return False

@@ -29,8 +29,7 @@ class DayHistoryWorkout(models.Model):
     end_datetime = models.DateTimeField(null=True, blank=True)
     workout_kcal_consumption = models.FloatField(null=True, blank=True)
     is_clear = models.BooleanField(default=False)
-    #is_extra_workout = models.BooleanField(default=False)
-
+    
     def __str__(self):
         return f'{self.user_id}_{self.create_date}_{self.workout_name}_운동기록'
 

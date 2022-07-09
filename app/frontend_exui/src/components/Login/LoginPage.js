@@ -30,7 +30,7 @@ function LoginPage()  {
         //네이버 로그인
         if (code != null & state != null) {
             console.log('naver')
-            axios.get(`http://127.0.0.1:8000/api/user/naver/login/${code}/${state}`)
+            axios.get(`http://127.0.0.1:8000/user/naver/login/${code}/${state}`)
                 .then(res => {
                     console.log(res)
                 })
@@ -39,7 +39,7 @@ function LoginPage()  {
         //카카오 로그인
         else if (code != null) {
             console.log('kakao')
-            axios.get(`http://127.0.0.1:8000/api/user/kakao/login/${code}`)
+            axios.get(`http://127.0.0.1:8000/user/kakao/login/${code}`)
                 .then(res => {
                     console.log(res)
                 })
@@ -63,7 +63,7 @@ function LoginPage()  {
             sessionStorage.setItem("user_id", res.data.User.id);
             history.push('/OnBoarding/BodyInfoPage');
         })
-        .catch(err => 
+        .catch(err =>
             console.log(err.response.data)
         )
 

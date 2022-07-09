@@ -39,17 +39,13 @@ class CreateRoutineView(APIView):
                     triceps_seq = User_WorkoutRoutine.triceps_seq  #삼두 순서
                     triceps_workouts = ["cable_push_down", "lying_triceps_extension", "dumbbell_kickback"]
                     triceps_workout = triceps_workouts[triceps_seq]
-                    
                     workouts = ["bench_press", "incline_press", "pec_dec_fly", triceps_workout, "cable_push_down", "crunch"]
-
                 elif (todayRoutine == 1) :
                     # 이두 운동
                     biceps_seq = User_WorkoutRoutine.biceps_seq  #이두 순서
                     biceps_workouts = ["easy_bar_curl", "arm_curl", "hammer_curl"]
-                    biceps_workout = triceps_workouts[biceps_seq]
-
+                    biceps_workout = biceps_workouts[biceps_seq]
                     workouts = ["lat_pull_down", "seated_row", "barbell_row", biceps_workout, "cable_push_down", "seated_knees_up"]
-
                 else:
                     workouts = ["dumbbell_shoulder_press", "side_lateral_raise", "reverse_pec_dec_fly", "squat", "leg_press", "leg_extension", "plank"]
                 
@@ -496,7 +492,8 @@ class SaveTestResultView(APIView):
         #UserWorkoutInfo 테이블 update or create (운동 루틴, 각 운동별 무게 추천)
         #등급으로 각 운동별 추천 무게 설정
         for workout in WorkoutInfo.objects.all():
-            created = create_target(workout)
+            workout_name = workout.workout_name
+            created = create_target(workout_name, user)
         
         if created:
             UserWorkoutRoutine.objects.create(
@@ -840,15 +837,16 @@ def create_workout(workouts, user, date):
             created_DayHistory_Workout.target_kg = User_WorkoutInfo.target_kg
         created_DayHistory_Workout.save()
 
-def create_target(workout):
-    Workout_Info = WorkoutInfo.objects.get(workout_name=workout)
-    User_WorkoutInfo, created = UserWorkoutInfo.objects.update_or_create(user_id = user, workout_name = Workout_Info)
-    
+def create_target(workout, user):
+    User_WorkoutInfo, created = UserWorkoutInfo.objects.update_or_create(user_id = user, workout_name = workout)
+
     if workout in ["crunch", "seated_knees_up"]: 
+        print(workout)
         User_WorkoutInfo.target_cnt  = CNT
     elif workout in ["plank"]:
         User_WorkoutInfo.target_time = TIME
     else:
         User_WorkoutInfo.target_kg = KG
+    
     User_WorkoutInfo.save()
     return created

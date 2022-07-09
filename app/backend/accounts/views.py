@@ -21,7 +21,7 @@ class SignUpView(APIView):
         #user를 create 해당 값 넣은 다음 다음 저장
         users = User.objects.all()
         if users.filter(username = request.data['id']).exists() :
-            return Response({"error":"이미 존재하는 아이디입니다"}, status=400)
+            return Response({"error":"이미 존재하는 아이디입니다"}, status=409)
         try :
             user = User.objects.create_user(
                     username=request.data['id'], 
@@ -41,7 +41,7 @@ class SignUpView(APIView):
                 "token": token.key
             })
         except :
-            return Response({"error":"모두 입력해주세요"}, status=400)
+            return Response({"error":"모두 입력해주세요"}, status=409)
 
 class LogInView(APIView):
     permission_classes = [AllowAny]
@@ -59,7 +59,7 @@ class LogInView(APIView):
                 "Token": token.key
             })
         else:
-            return Response({"error":"존재하지 않는 ID 이거나 PassWord입니다"}, status=400)
+            return Response({"error":"존재하지 않는 ID 이거나 PassWord입니다"}, status=409)
 
 class NaverLoginView(APIView):
     permission_classes = [AllowAny]
@@ -244,7 +244,7 @@ class BeginningUserInfoView(APIView):
                     "message": "유저 초기 키, 몸무게, 활동량, 목표체중 설정 완료",
                 })
         except:
-            return Response({"error":"모두 입력해주세요"}, status=400)
+            return Response({"error":"모두 입력해주세요"}, status=409)
 
 
 class DayUserInfoView(APIView):
@@ -297,4 +297,4 @@ class DayUserInfoView(APIView):
                     "message": "몸무게, BMI 정보 저장 완료",
                 })
         except:
-            return Response({"error":"모두 입력해주세요"}, status=400)
+            return Response({"error":"모두 입력해주세요"}, status=409)

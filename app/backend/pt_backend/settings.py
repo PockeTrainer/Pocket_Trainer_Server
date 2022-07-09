@@ -11,6 +11,9 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 """
 
 from pathlib import Path
+from AWS_RDS import *
+
+import datetime
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -45,6 +48,13 @@ INSTALLED_APPS = [
     'rest_framework.authtoken',
     'corsheaders',
 ]
+
+JWT_AUTH = {
+    'JWT_SECRET_KEY': SECRET_KEY,
+    'JWT_ALGORITHM': 'HS256',
+    'JWT_AUTH_HEADER_PREFIX': 'Token',
+    'JWT_EXPIRATION_DELTA': datetime.timedelta(days=7),
+}
 
 AUTHENTICATION_BACKENDS = (
     'django.contrib.auth.backends.ModelBackend',
@@ -105,11 +115,19 @@ WSGI_APPLICATION = 'pt_backend.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+        #'ENGINE': 'django.db.backends.sqlite3',
+        #'NAME': BASE_DIR / 'db.sqlite3',
+        'ENGINE': 'django.db.backends.mysql', # engine: mysql
+        'NAME' : NAME,  # DB Name
+        'USER' : USER,  # DB User
+        'PASSWORD' : PASSWORD, # Password
+        'HOST': HOST, # 생성한 데이터베이스 엔드포인트
+        'PORT': '3306', # 데이터베이스 포트
+        'OPTIONS':{
+            'init_command' : "SET sql_mode='STRICT_TRANS_TABLES'"
+        }
     }
 }
-
 
 # Password validation
 # https://docs.djangoproject.com/en/3.2/ref/settings/#auth-password-validators

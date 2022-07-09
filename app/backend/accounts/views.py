@@ -17,7 +17,6 @@ import json
 
 class SignUpView(APIView):
     permission_classes = [AllowAny]
-
     def post(self, request):
         #user를 create 해당 값 넣은 다음 다음 저장
         users = User.objects.all()
@@ -47,7 +46,6 @@ class SignUpView(APIView):
 class LogInView(APIView):
     permission_classes = [AllowAny]
     def post(self, request):
-        
         user = authenticate(username=request.data['id'], password=request.data['password'])
         if user is not None:
             q = User.objects.get(username=request.data['id'])
@@ -66,12 +64,10 @@ class LogInView(APIView):
 class NaverLoginView(APIView):
     permission_classes = [AllowAny]
     def get(self, request, code, state):
-
         naver_token_api = 'https://nid.naver.com/oauth2.0/token'
         data = {
             'grant_type': 'authorization_code',
             'client_id': NAVER_REST_API_KEY,
-            #'redirection_uri': 'http://localhost:8000/user/naver/login',
             'client_secret': NAVER_SECRET,
             'code': code,
             'state': state
@@ -207,109 +203,103 @@ class KakaoLoginView(APIView):
                 })
 
         return Response({"error":"에러발생"}, status=400)
-        # return Response({
-        #         "code" : 200,
-        #         "message": " 완료",
-        #     })
+
 
 class BeginningUserInfoView(APIView):
-    #authentication_classes = [TokenAuthentication]
-    #permission_classes = [IsAuthenticated]
     permission_classes = [AllowAny]
     def post(self, request, user_id):
-        # try:
-        user = User.objects.get(id=user_id)
-        user.height = float(request.data['height'])
-        user.weight = float(request.data['weight'])
-        user.activation_level = int(request.data['activation_level'])
-        user.target_weight = int(request.data['target_weight'])
-        user.save()
+        try:
+            user = User.objects.get(id=user_id)
+            user.height = float(request.data['height'])
+            user.weight = float(request.data['weight'])
+            user.activation_level = int(request.data['activation_level'])
+            user.target_weight = int(request.data['target_weight'])
+            user.save()
 
-        today = datetime.now().date()
-        DayHistory_UserInfo, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=today)
-        #DayHistory_UserInfo 생성했을 경우
-        if created:
-            bmi = round(float(request.data['weight']) / ((float(request.data['height'])/100)*(float(request.data['height'])/100)), 1)
-            DayHistory_UserInfo.weight = user.weight
+            today = datetime.now().date()
+            DayHistory_UserInfo, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=today)
+            #DayHistory_UserInfo 생성했을 경우
+            if created:
+                bmi = round(float(request.data['weight']) / ((float(request.data['height'])/100)*(float(request.data['height'])/100)), 1)
+                DayHistory_UserInfo.weight = user.weight
+                DayHistory_UserInfo.bmi = bmi
+                age = today.year - user.birth.year
+                #기초 대사량
+                basic_kcal = 0
+                if ('man' in user.gender):
+                    basic_kcal = 66 + (13.7*float(user.weight)) + (5*float(user.height)) - (6.8*age)
+                elif ('woman' in user.gender):
+                    basic_kcal = 655 + (9.6*float(user.weight)) + (1.7*float(user.height)) - (4.7*age)
+                
+                #유지 칼로리
+                w1_list = [1.2, 1.375, 1.55, 1.725, 1.9]  #가중치
+                maintain_kcal = basic_kcal * w1_list[int(user.activation_level)]
+                
+                #목표 칼로리
+                w2_list = [0.8, 1.0, 1.2]
+                target_kcal = maintain_kcal * w2_list[int(user.target_weight)]
+                
+                DayHistory_UserInfo.target_kcal = int(target_kcal)
+
+                DayHistory_UserInfo.save()
+
+
+            return Response({
+                    "code" : 200,
+                    "message": "유저 초기 키, 몸무게, 활동량, 목표체중 설정 완료",
+                })
+        except:
+            return Response({"error":"모두 입력해주세요"}, status=400)
+
+
+class DayUserInfoView(APIView):
+    authentication_classes = [TokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    def post(self, request, date, user_id):
+        try:
+            user = User.objects.get(id=user_id)
+
+            #유저정보(체중, 키, 활동량, 감량증량) 입력 여부 확인
+            weight = user.weight
+            height = user.height
+            if not weight or not height or user.activation_level not in [0,1,2,3,4] or user.target_weight not in [0,1,2]:
+                return Response({"error":"mainpage정보 호출 실패, 유저 정보 필요"}, status=400)
+
+            user.weight = request.data['weight']    #유저 weight 변경
+
+            bmi = round(float(request.data['weight']) / ((height/100)*(height/100)), 1)
+            DayHistory_UserInfo, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=date)
+            DayHistory_UserInfo.weight = request.data['weight']
             DayHistory_UserInfo.bmi = bmi
-            age = today.year - user.birth.year
+
+            #해당일 목표 칼로리 설정 되어 있지 않았다면 생성
+            format = '%Y-%m-%d'
+            date_ = datetime.strptime(date, format)
+            age = date_.year - user.birth.year
+
             #기초 대사량
             basic_kcal = 0
             if ('man' in user.gender):
-                basic_kcal = 66 + (13.7*float(user.weight)) + (5*float(user.height)) - (6.8*age)
+                basic_kcal = 66 + (13.7*float(request.data['weight'])) + (5*height) - (6.8*age)
             elif ('woman' in user.gender):
-                basic_kcal = 655 + (9.6*float(user.weight)) + (1.7*float(user.height)) - (4.7*age)
+                basic_kcal = 655 + (9.6*float(request.data['weight'])) + (1.7*height) - (4.7*age)
             
             #유지 칼로리
             w1_list = [1.2, 1.375, 1.55, 1.725, 1.9]  #가중치
-            maintain_kcal = basic_kcal * w1_list[int(user.activation_level)]
+            maintain_kcal = basic_kcal * w1_list[user.activation_level]
             
             #목표 칼로리
             w2_list = [0.8, 1.0, 1.2]
-            target_kcal = maintain_kcal * w2_list[int(user.target_weight)]
+            target_kcal = maintain_kcal * w2_list[user.target_weight]
             
             DayHistory_UserInfo.target_kcal = int(target_kcal)
 
             DayHistory_UserInfo.save()
+            user.save()
 
-
-        return Response({
-                "code" : 200,
-                "message": "유저 초기 키, 몸무게, 활동량, 목표체중 설정 완료",
-            })
-        # except:
-        #     return Response({"error":"모두 입력해주세요"}, status=400)
-
-
-class DayUserInfoView(APIView):
-    #authentication_classes = [TokenAuthentication]
-    #permission_classes = [IsAuthenticated]
-    permission_classes = [AllowAny]
-    def post(self, request, date, user_id):
-        # try:
-        user = User.objects.get(id=user_id)
-
-        #유저정보(체중, 키, 활동량, 감량증량) 입력 여부 확인
-        weight = user.weight
-        height = user.height
-        if not weight or not height or user.activation_level not in [0,1,2,3,4] or user.target_weight not in [0,1,2]:
-            return Response({"error":"mainpage정보 호출 실패, 유저 정보 필요"}, status=400)
-
-        user.weight = request.data['weight']    #유저 weight 변경
-
-        bmi = round(float(request.data['weight']) / ((height/100)*(height/100)), 1)
-        DayHistory_UserInfo, created = DayHistoryUserInfo.objects.update_or_create(user_id=user, create_date=date)
-        DayHistory_UserInfo.weight = request.data['weight']
-        DayHistory_UserInfo.bmi = bmi
-
-        #해당일 목표 칼로리 설정 되어 있지 않았다면 생성
-        format = '%Y-%m-%d'
-        date_ = datetime.strptime(date, format)
-        age = date_.year - user.birth.year
-
-        #기초 대사량
-        basic_kcal = 0
-        if ('man' in user.gender):
-            basic_kcal = 66 + (13.7*float(request.data['weight'])) + (5*height) - (6.8*age)
-        elif ('woman' in user.gender):
-            basic_kcal = 655 + (9.6*float(request.data['weight'])) + (1.7*height) - (4.7*age)
-        
-        #유지 칼로리
-        w1_list = [1.2, 1.375, 1.55, 1.725, 1.9]  #가중치
-        maintain_kcal = basic_kcal * w1_list[user.activation_level]
-        
-        #목표 칼로리
-        w2_list = [0.8, 1.0, 1.2]
-        target_kcal = maintain_kcal * w2_list[user.target_weight]
-        
-        DayHistory_UserInfo.target_kcal = int(target_kcal)
-
-        DayHistory_UserInfo.save()
-        user.save()
-
-        return Response({
-                "code" : 200,
-                "message": "몸무게, BMI 정보 저장 완료",
-            })
-        # except:
-        #     return Response({"error":"모두 입력해주세요"}, status=400)
+            return Response({
+                    "code" : 200,
+                    "message": "몸무게, BMI 정보 저장 완료",
+                })
+        except:
+            return Response({"error":"모두 입력해주세요"}, status=400)

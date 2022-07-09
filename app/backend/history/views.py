@@ -43,13 +43,36 @@ class MainPageInfoView(APIView):
         if UserTest_Result == None:
             return Response({"error":"mainpage정보(운동) 호출 실패, 체력평가 결과 필요"}, status=400) 
 
+        workout_lst = []       # 운동 lst
         #오늘의 루틴 기록
         today = datetime.datetime.now().date()
         DayHistory_Workout_q = DayHistoryWorkout.objects.filter(user_id=user, create_date=today)
+        for day_workout in DayHistory_Workout_q:
+            workout_lst.append(day_workout.workout_name)
         DayHistoryWorkout_Serializer = DayHistorySerializer(DayHistory_Workout_q, many=True)
 
+        workout_part = []   # 운동 부위 lst
+        #운동별 잘못된 자세 출력
+        wrong_poses_dict = {}       # 운동별 잘못된 자세 dict
+        today_routine_part = {}
+        for workout in workout_lst:
+            DayHistory_workout_q = DayHistoryWorkout.objects.get(user_id=user, workout_name = workout, create_date=today) 
+            DayHistory_Workout_Wrong_Poses_q = DayHistory_workout_q.day_history_workout_wrong_poses.values()
+
+            wrong_poses_dict[workout.workout_name] = []  
+            for dayHistory_wrong_pose in DayHistory_Workout_Wrong_Poses_q:
+                wrong_poses_dict[workout.workout_name].append(dayHistory_wrong_pose['wrong_pose'])
+            
+            workout_obj = DayHistorySerializer(DayHistory_workout_q)
+            if workout.body_part in today_routine_part:
+                today_routine_part[workout.body_part].append(workout_obj.data)
+            else:
+                today_routine_part[workout.body_part] = [workout_obj.data]
+                workout_part.append(workout.body_part)
+
         #오늘 소비 칼로리
-        today_kcal_consumption = DayHistoryWorkout.objects.filter(user_id=user, create_date=today).aggregate(Sum('workout_kcal_consumption'))
+        today_kcal_consumption = DayHistory_Workout_q.aggregate(Sum('workout_kcal_consumption'))['workout_kcal_consumption__sum']
+        if today_kcal_consumption == None: today_kcal_consumption = 0 
 
         if len(DayHistory_Workout_q) == 0:
             return Response({"error":"mainpage정보 호출 실패, 오늘의 루틴 생성 필요"}, status=400)
@@ -104,7 +127,6 @@ class MainPageInfoView(APIView):
         #오늘 - 어제 칼로리
         diff_kcal = today_kcal - yesterday_kcal
 
-
         #섭취한 탄,단,지 list (6일)
         carbohydrate_list = []        
         protein_list = []
@@ -135,6 +157,9 @@ class MainPageInfoView(APIView):
             "todayRoutine" : DayHistoryWorkout_Serializer.data,
             "clear_workout_percentage" : percentage,
             "day_history_diet" : DayHistoryDiet_Serializer.data,
+            "wrong_poses_dict" : wrong_poses_dict,
+            "workout_part" : workout_part,
+            "today_routine_part" : today_routine_part,
             "target_kcal" : target_kcal,
             "today_kcal" : today_kcal,
             "diff_kcal" : diff_kcal,

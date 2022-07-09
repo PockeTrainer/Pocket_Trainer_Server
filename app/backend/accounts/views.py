@@ -145,7 +145,6 @@ class KakaoLoginView(APIView):
             'redirection_uri': 'http://localhost:8000/user/kakao/login',
             'code': code
         }
-        #http://localhost:8000/accounts/signin/kakao/callback
         token_response = requests.post(kakao_token_api, data=data)
 
         access_token = token_response.json().get('access_token')
@@ -230,17 +229,13 @@ class BeginningUserInfoView(APIView):
                     basic_kcal = 66 + (13.7*float(user.weight)) + (5*float(user.height)) - (6.8*age)
                 elif ('woman' in user.gender):
                     basic_kcal = 655 + (9.6*float(user.weight)) + (1.7*float(user.height)) - (4.7*age)
-                
                 #유지 칼로리
                 w1_list = [1.2, 1.375, 1.55, 1.725, 1.9]  #가중치
                 maintain_kcal = basic_kcal * w1_list[int(user.activation_level)]
-                
                 #목표 칼로리
                 w2_list = [0.8, 1.0, 1.2]
                 target_kcal = maintain_kcal * w2_list[int(user.target_weight)]
-                
                 DayHistory_UserInfo.target_kcal = int(target_kcal)
-
                 DayHistory_UserInfo.save()
 
 

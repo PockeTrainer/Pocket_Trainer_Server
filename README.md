@@ -14,17 +14,10 @@
 ## 2. 사용 기술
 #### `Back-end`
   - Django
-  - Spring Boot 2.3
-  - Gradle
-  - Spring Data JPA
-  - QueryDSL
-  - sqlite3
-  - Spring Security
-  - Jsoup
+  - MySQL
 #### `Front-end`
-  - Vue.js 3.0
-  - Element UI
-  
+  - React
+
 </br>
 
 ## 3. ERD 설계
@@ -34,10 +27,10 @@
 
 
 ## 5. 핵심 트러블 슈팅
-- 인증/인가
-- 에러 처리
+
 
 ## 6. 그 외 트러블 슈팅
+<!--
 <details>
 <summary>npm run dev 실행 오류</summary>
 <div markdown="1">
@@ -55,7 +48,7 @@
 - 운동 도중 12시가 넘어가는
 -> 사용자 로그인해서 메인페이지 들어오는 경우만 고려했었다
 -> 
-
+-->
 
 ## 7. 회고 / 느낀점
 >프로젝트 개발 회고 글: 
